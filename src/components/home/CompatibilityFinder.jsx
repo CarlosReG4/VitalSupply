@@ -99,7 +99,7 @@ export default function CompatibilityFinder() {
   };
 
   return (
-    <section className="py-12 px-4 sm:px-6 lg:px-8 bg-white border-t border-b border-slate-100 mt-12">
+    <section id="compatibility-finder" className="py-12 px-4 sm:px-6 lg:px-8 bg-white border-t border-b border-slate-100 mt-12 scroll-mt-24">
       <div className="max-w-7xl mx-auto">
         
         <div className="text-center mb-8">

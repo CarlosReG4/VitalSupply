@@ -20,7 +20,7 @@ export default function HeroBanner() {
       subtitle: "Zero Risk, Precision Guaranteed",
       description: "Engineered to match strict OEM specifications for Mindray, Philips, GE, and more. Certified quality you can trust.",
       buttonText: "Use Compatibility Finder",
-      buttonLink: "/",
+      buttonLink: "#compatibility-finder",
       image: "https://images.unsplash.com/photo-1584515933487-78021c673153?q=80&w=1600&auto=format&fit=crop"
     },
     {
@@ -76,13 +76,26 @@ export default function HeroBanner() {
                   {slide.description}
                 </p>
                 <div className="pt-4">
-                  <Link
-                    to={slide.buttonLink}
-                    className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold px-8 py-4 rounded-xl transition-all shadow-lg shadow-blue-600/30 text-base group"
-                  >
-                    {slide.buttonText}
-                    <i className="fas fa-arrow-right text-sm transition-transform group-hover:translate-x-1"></i>
-                  </Link>
+                  {slide.buttonLink.startsWith('#') ? (
+                    <button
+                      onClick={() => {
+                        const el = document.querySelector(slide.buttonLink);
+                        if (el) el.scrollIntoView({ behavior: 'smooth' });
+                      }}
+                      className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold px-8 py-4 rounded-xl transition-all shadow-lg shadow-blue-600/30 text-base group"
+                    >
+                      {slide.buttonText}
+                      <i className="fas fa-arrow-right text-sm transition-transform group-hover:translate-x-1"></i>
+                    </button>
+                  ) : (
+                    <Link
+                      to={slide.buttonLink}
+                      className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold px-8 py-4 rounded-xl transition-all shadow-lg shadow-blue-600/30 text-base group"
+                    >
+                      {slide.buttonText}
+                      <i className="fas fa-arrow-right text-sm transition-transform group-hover:translate-x-1"></i>
+                    </Link>
+                  )}
                 </div>
               </div>
             </div>

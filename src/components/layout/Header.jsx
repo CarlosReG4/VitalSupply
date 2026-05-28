@@ -71,9 +71,9 @@ function Header() {
   return (
     <header className="bg-white shadow-sm sticky top-0 z-50">
       <div className="container mx-auto px-4 py-4 flex flex-wrap items-center justify-between">
-        <div className="w-full lg:w-auto mb-4 lg:mb-0">
+        <div className="w-full lg:w-auto mb-4 lg:mb-0 flex justify-center lg:justify-start">
           <Link to="/" className="inline-block">
-            <img src="/logo.svg" alt="VitalSupply" className="h-16 w-auto" />
+            <img src="/logo.svg" alt="VitalSupply" className="h-20 lg:h-16 w-auto" />
           </Link>
         </div>
 
@@ -180,7 +180,7 @@ function Header() {
 
           {/* Menú vertical desplegable en celular */}
           {menuMovilAbierto && (
-            <div className="pb-3 space-y-1 text-sm">
+            <div className="pb-3 space-y-1 text-sm max-h-[70vh] overflow-y-auto">{/* scroll si el menú es largo */}
               <Link to="/" onClick={() => setMenuMovilAbierto(false)} className="block py-2.5 px-2 rounded hover:bg-blue-800 font-semibold">
                 <i className="fas fa-home w-5"></i> Home
               </Link>
