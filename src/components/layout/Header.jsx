@@ -28,6 +28,8 @@ function Header() {
   
   const navigate = useNavigate();
   const [busqueda, setBusqueda] = useState('');
+  const [menuAbierto, setMenuAbierto] = useState(null); // 'categories' | 'others' | null
+  const [menuMovilAbierto, setMenuMovilAbierto] = useState(false); // menú hamburguesa
 
   const manejarBusqueda = (e) => {
     e.preventDefault(); 
@@ -119,19 +121,25 @@ function Header() {
       </div>
       
       <nav className="bg-blue-900 text-white border-t border-blue-800">
-        <div className="container mx-auto px-4 flex justify-center space-x-10 text-xs font-bold uppercase tracking-widest relative">
+        {/* BARRA HORIZONTAL — solo en computadora (md hacia arriba) */}
+        <div className="hidden md:flex container mx-auto px-4 justify-center space-x-10 text-xs font-bold uppercase tracking-widest relative">
           <Link to="/" className="hover:text-blue-300 transition-colors py-3">Home</Link>
           
-          <div className="relative group cursor-pointer py-3">
-            <span className="hover:text-blue-300 transition-colors flex items-center">
-              Categories <i className="fas fa-chevron-down ml-1 text-[10px]"></i>
-            </span>
-            <div className="absolute top-full left-0 bg-white shadow-xl py-2 w-56 text-gray-800 border rounded opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-50">
+          <div className="relative py-3">
+            <button
+              type="button"
+              onClick={() => setMenuAbierto(menuAbierto === 'categories' ? null : 'categories')}
+              className="hover:text-blue-300 transition-colors flex items-center uppercase tracking-widest font-bold"
+            >
+              Categories <i className={`fas fa-chevron-down ml-1 text-[10px] transition-transform ${menuAbierto === 'categories' ? 'rotate-180' : ''}`}></i>
+            </button>
+            <div className={`absolute top-full left-0 bg-white shadow-xl py-2 w-56 text-gray-800 border rounded transition-all duration-200 z-50 ${menuAbierto === 'categories' ? 'opacity-100 visible' : 'opacity-0 invisible'}`}>
               {categoriesList.map(item => (
                 <Link 
                   key={item} 
                   to={`/categorias?tipo=${item}`}
-                  className="block px-4 py-2 hover:bg-blue-50 hover:text-blue-600 transition-colors"
+                  onClick={() => setMenuAbierto(null)}
+                  className="block px-4 py-2 hover:bg-blue-50 hover:text-blue-600 transition-colors normal-case tracking-normal"
                 >
                   {item}
                 </Link>
@@ -139,13 +147,17 @@ function Header() {
             </div>
           </div>
 
-          <div className="relative group cursor-pointer py-3">
-            <span className="hover:text-blue-300 transition-colors flex items-center">
-              Others<i className="fas fa-chevron-down ml-1 text-[10px]"></i>
-            </span>
-            <div className="absolute top-full left-0 bg-white shadow-xl py-2 w-48 text-gray-800 border rounded opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-50">
+          <div className="relative py-3">
+            <button
+              type="button"
+              onClick={() => setMenuAbierto(menuAbierto === 'others' ? null : 'others')}
+              className="hover:text-blue-300 transition-colors flex items-center uppercase tracking-widest font-bold"
+            >
+              Others <i className={`fas fa-chevron-down ml-1 text-[10px] transition-transform ${menuAbierto === 'others' ? 'rotate-180' : ''}`}></i>
+            </button>
+            <div className={`absolute top-full left-0 bg-white shadow-xl py-2 w-48 text-gray-800 border rounded transition-all duration-200 z-50 ${menuAbierto === 'others' ? 'opacity-100 visible' : 'opacity-0 invisible'}`}>
               {otrosList.map(item => (
-                <Link key={item} to={item === 'Promotions' ? '/promociones' : '/nuevos'} className="block px-4 py-2 hover:bg-blue-50 hover:text-blue-600 transition-colors">
+                <Link key={item} to={item === 'Promotions' ? '/promociones' : '/nuevos'} onClick={() => setMenuAbierto(null)} className="block px-4 py-2 hover:bg-blue-50 hover:text-blue-600 transition-colors normal-case tracking-normal">
                   {item}
                 </Link>
               ))}
@@ -153,6 +165,55 @@ function Header() {
           </div>
 
           <Link to="/nosotros" className="hover:text-blue-300 transition-colors py-3">About Us</Link>
+        </div>
+
+        {/* BOTÓN HAMBURGUESA — solo en celular (debajo de md) */}
+        <div className="md:hidden container mx-auto px-4">
+          <button
+            type="button"
+            onClick={() => setMenuMovilAbierto(!menuMovilAbierto)}
+            className="flex items-center gap-2 py-3 font-bold uppercase tracking-widest text-sm w-full"
+          >
+            <i className={`fas ${menuMovilAbierto ? 'fa-xmark' : 'fa-bars'} text-lg`}></i>
+            Menu
+          </button>
+
+          {/* Menú vertical desplegable en celular */}
+          {menuMovilAbierto && (
+            <div className="pb-3 space-y-1 text-sm">
+              <Link to="/" onClick={() => setMenuMovilAbierto(false)} className="block py-2.5 px-2 rounded hover:bg-blue-800 font-semibold">
+                <i className="fas fa-home w-5"></i> Home
+              </Link>
+
+              <p className="pt-3 pb-1 px-2 text-blue-300 text-xs uppercase tracking-widest font-bold">Categories</p>
+              {categoriesList.map(item => (
+                <Link
+                  key={item}
+                  to={`/categorias?tipo=${item}`}
+                  onClick={() => setMenuMovilAbierto(false)}
+                  className="block py-2.5 px-2 pl-6 rounded hover:bg-blue-800"
+                >
+                  {item}
+                </Link>
+              ))}
+
+              <p className="pt-3 pb-1 px-2 text-blue-300 text-xs uppercase tracking-widest font-bold">Others</p>
+              {otrosList.map(item => (
+                <Link
+                  key={item}
+                  to={item === 'Promotions' ? '/promociones' : '/nuevos'}
+                  onClick={() => setMenuMovilAbierto(false)}
+                  className="block py-2.5 px-2 pl-6 rounded hover:bg-blue-800"
+                >
+                  {item}
+                </Link>
+              ))}
+
+              <Link to="/nosotros" onClick={() => setMenuMovilAbierto(false)} className="block py-2.5 px-2 mt-2 rounded hover:bg-blue-800 font-semibold border-t border-blue-800 pt-3">
+                <i className="fas fa-circle-info w-5"></i> About Us
+              </Link>
+            </div>
+          )}
         </div>
       </nav>
 
