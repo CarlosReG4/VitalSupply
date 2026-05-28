@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 70" width="300" height="70" role="img" aria-label="VitalSupply">
+  <!-- Ícono: pulso dentro de cuadro redondeado -->
+  <rect x="2" y="11" width="48" height="48" rx="12" fill="#1e3a8a"/>
+  <path d="M12 35 H20 L24 26 L30 44 L35 35 H40"
+        fill="none" stroke="#38bdf8" stroke-width="3.2"
+        stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Texto -->
+  <text x="62" y="44" font-family="'Segoe UI', Arial, sans-serif" font-size="30" font-weight="800" letter-spacing="-1">
+    <tspan fill="#1e3a8a">Vital</tspan><tspan fill="#38bdf8">Supply</tspan>
+  </text>
+</svg>
