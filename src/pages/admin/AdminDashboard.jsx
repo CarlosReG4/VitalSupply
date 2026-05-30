@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import TablaProductos from '../../components/admin/TablaProductos';
 import FormularioProducto from '../../components/admin/FormularioProducto';
+import TablaPedidos from '../../components/admin/TablaPedidos';
 
 export default function AdminDashboard() {
   const { logout, usuario } = useAuth();
@@ -17,10 +18,9 @@ export default function AdminDashboard() {
   };
 
   return (
-    // Agregamos items-start para que el scroll fluya natural en la página completa
     <div className="flex bg-slate-100 font-sans items-start min-h-screen">
       
-      {/* Panel Lateral (Sidebar) - Ahora es STICKY, se queda fijo mientras haces scroll */}
+      {/* Panel Lateral (Sidebar) */}
       <div className="w-64 bg-slate-900 text-slate-300 flex flex-col shadow-lg shrink-0 sticky top-0 h-screen">
         <div className="p-6 border-b border-slate-800 flex items-center gap-3">
           <i className="fas fa-user-shield text-blue-500 text-xl"></i>
@@ -40,7 +40,7 @@ export default function AdminDashboard() {
                 : 'hover:bg-slate-800 hover:text-white'
             }`}
           >
-            <i className="fas fa-boxes text-base"></i>
+            <i className="fas fa-boxes text-base w-5 text-center"></i>
             Catálogo General
           </button>
 
@@ -56,8 +56,25 @@ export default function AdminDashboard() {
                 : 'hover:bg-slate-800 hover:text-white'
             }`}
           >
-            <i className="fas fa-sparkles text-base"></i>
+            <i className="fas fa-sparkles text-base w-5 text-center"></i>
             Productos Nuevos
+          </button>
+
+          {/* NUEVO BOTÓN: GESTIÓN DE PEDIDOS */}
+          <button
+            onClick={() => {
+              setSeccion('pedidos');
+              setEnCreacion(false);
+              setProductoEditar(null);
+            }}
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-semibold transition-colors ${
+              seccion === 'pedidos'
+                ? 'bg-blue-600 text-white shadow-md'
+                : 'hover:bg-slate-800 hover:text-white'
+            }`}
+          >
+            <i className="fas fa-shopping-bag text-base w-5 text-center"></i>
+            Gestión de Pedidos
           </button>
         </nav>
         
@@ -81,7 +98,7 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      {/* Área de Contenido Principal (Derecha) - Se eliminó el scroll interno */}
+      {/* Área de Contenido Principal (Derecha) */}
       <div className="flex-1 p-8 min-h-screen">
         <div className="max-w-6xl mx-auto">
           
@@ -149,9 +166,19 @@ export default function AdminDashboard() {
             </div>
           )}
 
+          {/* NUEVA SECCIÓN: GESTIÓN DE PEDIDOS */}
+          {seccion === 'pedidos' && (
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 animate-fade-in">
+              <div className="mb-6">
+                <h2 className="text-2xl font-bold text-slate-800">Gestión de Pedidos</h2>
+                <p className="text-gray-500 text-sm">Administración de ventas, seguimiento de logística y control de estados.</p>
+              </div>
+              <TablaPedidos />
+            </div>
+          )}
+
         </div>
       </div>
-
     </div>
   );
 }
