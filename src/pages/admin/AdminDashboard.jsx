@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import TablaProductos from '../../components/admin/TablaProductos';
 import FormularioProducto from '../../components/admin/FormularioProducto';
+import TablaPedidos from '../../components/admin/TablaPedidos';
 
 export default function AdminDashboard() {
   const { logout, usuario } = useAuth();
@@ -58,6 +59,22 @@ export default function AdminDashboard() {
           >
             <i className="fas fa-sparkles text-base"></i>
             Productos Nuevos
+          </button>
+
+          <button
+            onClick={() => {
+              setSeccion('pedidos');
+              setEnCreacion(false);
+              setProductoEditar(null);
+            }}
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-semibold transition-colors ${
+              seccion === 'pedidos'
+                ? 'bg-blue-600 text-white shadow-md'
+                : 'hover:bg-slate-800 hover:text-white'
+            }`}
+          >
+            <i className="fas fa-receipt text-base"></i>
+            Pedidos
           </button>
         </nav>
         
@@ -146,6 +163,17 @@ export default function AdminDashboard() {
                   <TablaProductos vista="nuevos" onEdit={handleEdit} />
                 </div>
               )}
+            </div>
+          )}
+
+          {/* SECCIÓN: PEDIDOS */}
+          {seccion === 'pedidos' && (
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 animate-fade-in">
+              <div className="mb-6">
+                <h2 className="text-2xl font-bold text-slate-800">Pedidos</h2>
+                <p className="text-gray-500 text-sm">Gestión de órdenes recibidas (Stripe y WhatsApp).</p>
+              </div>
+              <TablaPedidos />
             </div>
           )}
 
