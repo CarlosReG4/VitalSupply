@@ -1,10 +1,47 @@
-const promosData = [
-  { id: 1, nombre: 'Sensor SpO2 Reusable Pediátrico', precioNormal: '$950.00', precioPromo: '$750.00', descuento: '20%' },
-  { id: 2, nombre: 'Cable Troncal ECG 5 Puntas', precioNormal: '$1,500.00', precioPromo: '$1,200.00', descuento: '20%' },
-  { id: 3, nombre: 'Batería para Monitor Mindray', precioNormal: '$2,800.00', precioPromo: '$2,380.00', descuento: '15%' },
-];
+import React, { useState, useEffect } from 'react';
+import { supabase } from '../api/supabase';
+// Importamos tu store del carrito para poder agregar los productos
+import { useCartStore } from '../store/cartStore';
 
 function Promociones() {
+  const [promosData, setPromosData] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  // Extraemos la función para agregar al carrito (ajusta el nombre si es diferente en tu cartStore.js)
+  const agregarAlCarrito = useCartStore((state) => state.agregarAlCarrito || state.addToCart);
+
+  useEffect(() => {
+    fetchPromociones();
+  }, []);
+
+  const fetchPromociones = async () => {
+    setLoading(true);
+    // Buscamos solo los productos que tú o tu socio hayan marcado en promoción desde el panel admin
+    const { data, error } = await supabase
+      .from('productos')
+      .select('*')
+      .eq('en_promocion', true);
+
+    if (!error && data) {
+      setPromosData(data);
+    } else {
+      console.error("Error al cargar promociones:", error);
+    }
+    setLoading(false);
+  };
+
+  const handleAgregarCarrito = (producto) => {
+    if (agregarAlCarrito) {
+      // Clave: Modificamos temporalmente el objeto para que el carrito tome el precio rebajado
+      agregarAlCarrito({
+        ...producto,
+        precio: producto.precio_promocion // Sobrescribimos el precio normal por el de oferta
+      });
+      // Aquí podrías agregar un Toast o notificación más visual en lugar del alert
+      alert(`¡${producto.nombre} agregado al carrito con precio de promoción!`);
+    }
+  };
+
   return (
     <div className="bg-gray-50 font-sans text-gray-900 min-h-screen flex flex-col">
 
@@ -18,10 +55,10 @@ function Promociones() {
         </div>
       </div>
 
-      {/* Contenedor Principal (Filtros a la izquierda, Productos a la derecha) */}
+      {/* Contenedor Principal */}
       <main className="flex-grow container mx-auto px-4 py-12 flex flex-col md:flex-row gap-8">
         
-        {/* BARRA LATERAL (Filtros técnicos - Nuestra mejora sobre la competencia) */}
+        {/* BARRA LATERAL (Filtros técnicos) */}
         <aside className="w-full md:w-1/4">
           <div className="bg-white p-6 border rounded shadow-sm sticky top-24">
             <h3 className="font-black uppercase tracking-widest text-sm mb-6 border-b pb-2">Filter Products</h3>
@@ -58,34 +95,89 @@ function Promociones() {
 
         {/* CUADRÍCULA DE PRODUCTOS */}
         <section className="w-full md:w-3/4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            
-            {promosData.map((promo) => (
-              <div key={promo.id} className="bg-white border rounded p-6 relative hover:shadow-lg transition-shadow group">
-                {/* Etiqueta de Descuento Visual */}
-                <div className="absolute top-4 right-4 bg-red-500 text-white text-[10px] font-black px-2 py-1 rounded uppercase tracking-widest z-10">
-                  -{promo.descuento}
-                </div>
-                
-                <div className="h-40 bg-gray-50 flex items-center justify-center mb-4 font-bold text-gray-300">
-                  [IMAGEN]
-                </div>
-                
-                <h4 className="font-bold text-sm mb-2 uppercase text-gray-800">{promo.nombre}</h4>
-                
-                {/* Precios tachados y nuevos */}
-                <div className="flex items-center space-x-2 mb-4">
-                  <span className="text-gray-400 line-through text-xs font-bold">{promo.precioNormal}</span>
-                  <span className="text-red-600 font-black text-lg">{promo.precioPromo}</span>
-                </div>
-                
-                <button className="w-full bg-white border-2 border-blue-900 text-blue-900 py-2 text-xs font-bold uppercase tracking-widest hover:bg-blue-900 hover:text-white transition-colors">
-                  Agregar
-                </button>
-              </div>
-            ))}
+          {loading ? (
+            <div className="flex justify-center items-center h-64">
+              <i className="fas fa-spinner fa-spin text-4xl text-blue-900"></i>
+            </div>
+          ) : promosData.length === 0 ? (
+            <div className="bg-white border border-gray-200 rounded-lg p-10 text-center">
+              <i className="fas fa-tags text-4xl text-gray-300 mb-3"></i>
+              <h3 className="text-lg font-bold text-gray-600">Sin promociones activas</h3>
+              <p className="text-gray-400 mt-2 text-sm">Actualmente no tenemos ofertas. Vuelve pronto para ver nuevos descuentos.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {promosData.map((promo) => {
+                // Aseguramos que los precios sean números válidos para evitar errores de renderizado
+                const precioNormal = Number(promo.precio_venta_sugerido ?? promo.precio ?? 0).toFixed(2);
+                const precioRebajado = Number(promo.precio_promocion ?? 0).toFixed(2);
 
-          </div>
+                return (
+                  <div key={promo.id} className="bg-white border rounded p-6 relative hover:shadow-lg transition-shadow group flex flex-col h-full">
+                    
+                    {/* Etiqueta de Descuento Visual */}
+                    {promo.porcentaje_descuento && (
+                      <div className="absolute top-4 right-4 bg-red-500 text-white text-[10px] font-black px-2 py-1 rounded uppercase tracking-widest z-10 shadow-sm">
+                        -{promo.porcentaje_descuento}%
+                      </div>
+                    )}
+                    
+                    {/* Contenedor de Imagen usando el archivo público que ya tienen */}
+                    <div className="h-40 bg-white border border-gray-100 flex items-center justify-center mb-4 p-2 rounded relative overflow-hidden">
+                      {promo.imagen_url ? (
+                        <img 
+                          src={promo.imagen_url} 
+                          alt={promo.nombre} 
+                          className="max-h-full max-w-full object-contain group-hover:scale-105 transition-transform duration-300" 
+                        />
+                      ) : (
+                        <img 
+                          src="/sin-imagen.svg" 
+                          alt="Sin imagen" 
+                          className="w-16 h-16 opacity-30" 
+                        />
+                      )}
+                    </div>
+                    
+                    <div className="flex-grow">
+                      <h4 className="font-bold text-sm mb-1 text-gray-800 line-clamp-2">
+                        {promo.nombre}
+                      </h4>
+                      {promo.mi_sku && (
+                        <p className="text-[10px] text-gray-400 font-mono mb-3">
+                          SKU: {promo.mi_sku}
+                        </p>
+                      )}
+                      
+                      {/* Descripción de promoción si existe */}
+                      {promo.descripcion_promocion && (
+                        <p className="text-[11px] text-blue-600 italic mb-2">
+                          {promo.descripcion_promocion}
+                        </p>
+                      )}
+                    </div>
+                    
+                    {/* Precios tachados y nuevos */}
+                    <div className="flex items-center space-x-2 mb-4 mt-auto">
+                      <span className="text-gray-400 line-through text-xs font-bold">
+                        ${precioNormal}
+                      </span>
+                      <span className="text-red-600 font-black text-lg">
+                        ${precioRebajado}
+                      </span>
+                    </div>
+                    
+                    <button 
+                      onClick={() => handleAgregarCarrito(promo)}
+                      className="w-full bg-white border-2 border-blue-900 text-blue-900 py-2 text-xs font-bold uppercase tracking-widest hover:bg-blue-900 hover:text-white transition-colors"
+                    >
+                      Agregar
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </section>
 
       </main>
