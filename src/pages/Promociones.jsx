@@ -15,7 +15,7 @@ function Promociones() {
   const fetchPromociones = async () => {
     setLoading(true);
     const { data, error } = await supabase
-      .from('productos')
+      .from('productos_medicos_v2')
       .select('*')
       .eq('en_promocion', true);
 
@@ -33,7 +33,7 @@ function Promociones() {
         ...producto,
         precio: producto.precio_promocion
       });
-      alert(`¡${producto.nombre} added to cart at promotional price!`);
+      alert(`${producto.nombre} added to cart at promotional price!`);
     }
   };
 

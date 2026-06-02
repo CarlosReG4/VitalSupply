@@ -3,18 +3,18 @@ import React from 'react';
 export default function Testimonios() {
   const reviews = [
     {
-      name: "Dr. Roberto Méndez",
-      role: "Jefe de Área, Hospital Central",
+      name: "Dr. Robert Mendez",
+      role: "Department Head, Central Hospital",
       text: "The quality of the SpO2 sensors is exceptional. They have reduced our replacement costs significantly while maintaining precision.",
     },
     {
-      name: "Ing. Ana Sofía Ruiz",
-      role: "Coordinadora de Ingeniería Biomédica",
+      name: "Eng. Anna Sophia Ruiz",
+      role: "Biomedical Engineering Coordinator",
       text: "Customer service is top-tier. They provided technical support that saved us hours of troubleshooting. Highly recommended.",
     },
     {
-      name: "Clínica MedVida",
-      role: "Gestión de Compras",
+      name: "MedVida Clinic",
+      role: "Purchasing Manager",
       text: "Reliable equipment and fast shipping. We've been working with VitalSupply for a year and haven't had a single issue.",
     }
   ];

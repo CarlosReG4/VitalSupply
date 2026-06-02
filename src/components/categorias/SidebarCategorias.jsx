@@ -17,7 +17,7 @@ export default function SidebarCategorias({ categoriaPrincipal }) {
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 flex flex-col">
         {/* Encabezado azul clásico */}
         <div className="bg-blue-900 p-4 shrink-0 rounded-t-2xl">
-          <h3 className="text-white font-black text-xs uppercase tracking-[0.2em]">Navegación de Catálogo</h3>
+          <h3 className="text-white font-black text-xs uppercase tracking-[0.2em]">Catalog Navigation</h3>
         </div>
         
         {/* Cuerpo de navegación */}

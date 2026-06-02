@@ -43,7 +43,7 @@ const ProductoDetalle = () => {
   if (error || !producto) return (
     <div className="p-20 text-center">
       <h2 className="text-2xl font-bold text-gray-800">Producto no encontrado.</h2>
-      <p className="text-gray-500">El SKU {skuBusqueda} no existe en nuestro catálogo.</p>
+      <p className="text-gray-500">SKU {skuBusqueda} was not found in our catalog.</p>
     </div>
   );
 
