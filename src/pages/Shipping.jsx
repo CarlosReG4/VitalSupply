@@ -54,7 +54,7 @@ export default function Shipping() {
 
           <div className="bg-blue-50 rounded-lg p-5 text-center">
             <p className="text-gray-700 mb-3 text-sm">Need your order by a specific date?</p>
-            <a href="https://wa.me/528711063097" target="_blank" rel="noopener noreferrer"
+            <a href="https://wa.me/528717821161" target="_blank" rel="noopener noreferrer"
                className="inline-block bg-green-500 hover:bg-green-600 text-white font-bold py-2.5 px-6 rounded-lg transition-colors text-sm">
               Ask us on WhatsApp
             </a>

@@ -64,15 +64,11 @@ export default function Terminos() {
           <section>
             <h2 className="text-lg font-bold text-blue-900 mb-2">7. Contact</h2>
             <p>
-              Questions about these Terms? Reach us at <a href="mailto:Sales.vitalsupplyMx@gmail.com" className="text-blue-600 hover:underline">Sales.vitalsupplyMx@gmail.com</a> or
-              via WhatsApp at +52 871 106 3097. VitalSupply is based in Torreón, Coahuila, México.
+              Questions about these Terms? Reach us at <a href="mailto:sales@vitalsupply.site" className="text-blue-600 hover:underline">sales@vitalsupply.site</a> or
+              via WhatsApp at +52 871 782 1161. VitalSupply is based in Torreón, Coahuila, México.
             </p>
           </section>
 
-          <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 text-sm text-amber-800">
-            <strong>Nota para el dueño (borrar antes de publicar):</strong> Esta es una plantilla base. Para un negocio
-            de insumos médicos conviene que un abogado revise estos términos, sobre todo la sección de responsabilidad.
-          </div>
         </div>
       </div>
     </div>
