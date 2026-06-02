@@ -23,7 +23,7 @@ export default function GestorPromociones() {
   // Cargar los productos que ya tienen la etiqueta en_promocion = true
   const fetchPromocionesActivas = async () => {
     const { data, error } = await supabase
-      .from('productos')
+      .from('productos_medicos_v2')
       .select('*')
       .eq('en_promocion', true);
     
@@ -37,7 +37,7 @@ export default function GestorPromociones() {
 
     setLoading(true);
     const { data, error } = await supabase
-      .from('productos')
+      .from('productos_medicos_v2')
       .select('*')
       .or(`nombre.ilike.%${busqueda}%,mi_sku.ilike.%${busqueda}%`)
       .limit(5);
@@ -90,7 +90,7 @@ export default function GestorPromociones() {
     setGuardando(true);
 
     const { error } = await supabase
-      .from('productos')
+      .from('productos_medicos_v2')
       .update({
         en_promocion: true,
         precio_promocion: Number(precioPromo),
@@ -116,7 +116,7 @@ export default function GestorPromociones() {
     if(!window.confirm('¿Seguro que quieres quitar este producto de promociones?')) return;
     
     const { error } = await supabase
-      .from('productos')
+      .from('productos_medicos_v2')
       .update({
         en_promocion: false,
         precio_promocion: null,
