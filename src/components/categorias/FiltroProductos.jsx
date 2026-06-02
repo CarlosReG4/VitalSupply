@@ -38,7 +38,7 @@ export default function FiltroProductos({ categoria, subcategoria, filtros, onFi
             onClick={limpiar}
             className="text-[11px] font-bold text-red-500 hover:text-red-700 uppercase tracking-widest transition-colors"
           >
-            <i className="fas fa-times mr-1"></i> Limpiar filtros
+            <i className="fas fa-times mr-1"></i> Clear filters
           </button>
         )}
       </div>
