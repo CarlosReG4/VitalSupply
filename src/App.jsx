@@ -9,6 +9,7 @@ import Header from './components/layout/Header';
 import Footer from './components/layout/Footer';
 import ScrollToTop from './components/layout/ScrollToTop';
 import RutaProtegida from './components/admin/RutaProtegida';
+import QRRedirect from './pages/QRRedirect';
 
 // 2. Páginas con lazy loading (carga más rápida del sitio)
 const Home = lazy(() => import('./pages/Home'));
@@ -70,6 +71,9 @@ function App() {
                 <Route path="/blogs" element={<Blogs />} />
                 <Route path="/producto/:id" element={<ProductoDetalle />} />
                 <Route path="/subcategoria/:subId" element={<SubcategoriaDetalle />} />
+
+                {/* Ruta para capturar los códigos QR dinámicos */}
+                <Route path="/qr/:slug" element={<QRRedirect />} />
 
                 {/* Panel de administración: login público, dashboard protegido */}
                 <Route path="/admin/login" element={<Login />} />

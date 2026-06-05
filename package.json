@@ -11,6 +11,8 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.105.4",
+    "dotenv": "^17.4.2",
+    "googleapis": "^173.0.0",
     "react": "^19.2.5",
     "react-dom": "^19.2.5",
     "react-helmet-async": "^3.0.0",
@@ -20,6 +22,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.39.4",
+    "@tailwindcss/vite": "^4.2.4",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.1",
@@ -31,7 +34,19 @@
     "postcss": "^8.5.13",
     "supabase": "^2.101.0",
     "tailwindcss": "^4.2.4",
-    "vite": "^8.0.9",
-    "@tailwindcss/vite": "^4.2.4"
-  }
+    "vite": "^8.0.9"
+  },
+  "description": "Hace que el menú lateral (`SidebarCategorias`) **oculte automáticamente** las\r subcategorías que no tienen productos en la base de datos. Hoy te oculta:",
+  "main": "eslint.config.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/CarlosReG4/VitalSupply.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/CarlosReG4/VitalSupply/issues"
+  },
+  "homepage": "https://github.com/CarlosReG4/VitalSupply#readme"
 }
