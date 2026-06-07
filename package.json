@@ -36,7 +36,6 @@
     "supabase": "^2.101.0",
     "tailwindcss": "^4.2.4",
     "vite": "^8.0.9"
-  }
   },
   "description": "Hace que el menú lateral (`SidebarCategorias`) **oculte automáticamente** las\r subcategorías que no tienen productos en la base de datos. Hoy te oculta:",
   "main": "eslint.config.js",
