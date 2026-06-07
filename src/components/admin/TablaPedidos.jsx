@@ -154,6 +154,7 @@ function TablaPedidos() {
             >
               <option value="todos">Todos los canales</option>
               <option value="stripe">Stripe (Tarjeta)</option>
+              <option value="paypal">PayPal</option>
               <option value="whatsapp">WhatsApp</option>
             </select>
           </div>
@@ -206,6 +207,10 @@ function TablaPedidos() {
                       {(pedido.metodo_pago || 'stripe') === 'stripe' ? (
                         <span className="inline-flex items-center gap-1 bg-indigo-50 text-indigo-700 px-2 py-1 rounded-md text-xs font-medium">
                           <i className="fas fa-credit-card text-[10px]"></i> Stripe
+                        </span>
+                      ) : pedido.metodo_pago === 'paypal' ? (
+                        <span className="inline-flex items-center gap-1 bg-sky-50 text-sky-700 px-2 py-1 rounded-md text-xs font-medium">
+                          <i className="fab fa-paypal text-[10px]"></i> PayPal
                         </span>
                       ) : (
                         <span className="inline-flex items-center gap-1 bg-emerald-50 text-emerald-700 px-2 py-1 rounded-md text-xs font-medium">
