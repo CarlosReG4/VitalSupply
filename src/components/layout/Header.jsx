@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useCartStore } from '../../store/cartStore';
 import { iniciarPagoStripe } from '../../utils/checkout';
+import BotonPaypal from '../checkout/BotonPaypal';
 
 const categoriesList = ['SpO2', 'ECG Cables', 'EKG Cables', 'NIBP', 'IBP Cables', 'Temperature', 'Fetal', 'Oxygen Sensors'];
 const otrosList = ['Promociones', 'Novedades'];
@@ -278,6 +279,10 @@ function Header() {
                   <><i className="fas fa-credit-card"></i> Pay with card</>
                 )}
               </button>
+
+              {/* Botón de PayPal (para tarjetas que no pueden pagar USD en Stripe) */}
+              <BotonPaypal carrito={carrito} />
+
               <button
                 onClick={cotizarPorWhatsapp}
                 className="w-full bg-green-600 text-white py-3 font-bold uppercase tracking-widest hover:bg-green-500 transition-colors rounded flex items-center justify-center gap-2"
@@ -285,7 +290,7 @@ function Header() {
                 <i className="fab fa-whatsapp text-lg"></i> Quote via WhatsApp
               </button>
               <p className="text-[10px] text-gray-400 text-center mt-2">
-                Pay online with card or request a quote via WhatsApp.
+                Pay online with card or PayPal, or request a quote via WhatsApp.
               </p>
             </div>
           )}

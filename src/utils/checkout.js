@@ -42,3 +42,35 @@ export const construirUrlWhatsapp = (carrito, numero) => {
 
   return `https://wa.me/${numero}?text=${encodeURIComponent(mensaje)}`;
 };
+
+// --- OPCIÓN 3: Pago con PayPal ---
+// Crea la orden en el servidor (los precios se validan en la Edge Function,
+// igual que con Stripe) y devuelve el orderId de PayPal para el botón.
+export const crearOrdenPaypal = async (carrito) => {
+  const items = carrito.map((item) => ({
+    mi_sku: item.mi_sku,
+    cantidad: item.cantidad || 1,
+  }));
+
+  const { data, error } = await supabase.functions.invoke('crear-orden-paypal', {
+    body: { items },
+  });
+
+  if (error) throw error;
+  if (!data?.orderId) throw new Error(data?.error || 'No se pudo crear la orden de PayPal.');
+
+  return data.orderId;
+};
+
+// Captura el pago una vez que el comprador aprobó en PayPal.
+// Marca la orden como "pagada" del lado del servidor.
+export const capturarOrdenPaypal = async (orderId) => {
+  const { data, error } = await supabase.functions.invoke('capturar-orden-paypal', {
+    body: { orderId },
+  });
+
+  if (error) throw error;
+  if (data?.status !== 'COMPLETED') throw new Error(data?.error || 'El pago no se completó.');
+
+  return data;
+};
