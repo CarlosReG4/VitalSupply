@@ -19,7 +19,8 @@ export default function FormularioProducto({ onClose, onProductoGuardado, produc
       setFormData({
         sku: productToEdit.mi_sku || '',
         nombre: productToEdit.nombre || '',
-<<<<<<< HEAD
+
+
         // ... (Mantén todo el código que ya tienes aquí adentro igual)
         oemcross: JSON.stringify(productToEdit.oemcross || [])
       });
@@ -32,29 +33,6 @@ export default function FormularioProducto({ onClose, onProductoGuardado, produc
         imagen_url: '', imagen_url_2: '', imagen_url_3: '', imagen_url_4: '', imagen_url_5: '', imagen_url_6: '',
         compatibility: '[]', especificaciones: '[]', oemcross: '[]'
       });
-=======
-        precio: productToEdit.precio || '',
-        precio_venta_sugerido: productToEdit.precio_venta_sugerido || '',
-        tiene_proveedor: productToEdit.tiene_proveedor !== false, // Default true
-        tipo: productToEdit.tipo || '',
-        url: productToEdit.url || '',
-        descripcion: productToEdit.descripcion || '',
-        categoria: productToEdit.categoria || '',
-        subcategoria: productToEdit.subcategoria || '',
-        sku_competencia: productToEdit.sku_competencia || '',
-        disponible: productToEdit.disponible !== false, // Default true
-        imagen_url: productToEdit.imagen_url || '',
-        imagen_url_2: productToEdit.imagen_url_2 || '',
-        imagen_url_3: productToEdit.imagen_url_3 || '',
-        imagen_url_4: productToEdit.imagen_url_4 || '',
-        imagen_url_5: productToEdit.imagen_url_5 || '',
-        imagen_url_6: productToEdit.imagen_url_6 || '',
-        // Los JSON los pasamos a texto para poder editarlos en los textarea
-        compatibility: JSON.stringify(productToEdit.compatibility || []),
-        especificaciones: JSON.stringify(productToEdit.especificaciones || []),
-        oemcross: JSON.stringify(productToEdit.oemcross || [])
-      });
->>>>>>> 53b4523e379b789749bcb5db9b16088b73afbfbd
     }
   }, [productToEdit]);
 
@@ -75,11 +53,7 @@ export default function FormularioProducto({ onClose, onProductoGuardado, produc
       // y nos aseguramos de que la llave se llame "mi_sku" como en tu DB
       const datosParaGuardar = {
         ...formData,
-<<<<<<< HEAD
         mi_sku: formData.sku.trim(),
-=======
-        mi_sku: formData.sku,
->>>>>>> 53b4523e379b789749bcb5db9b16088b73afbfbd
         precio: parseFloat(formData.precio) || 0,
         precio_venta_sugerido: parseFloat(formData.precio_venta_sugerido) || null,
         compatibility: JSON.parse(formData.compatibility || '[]'),
