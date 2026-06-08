@@ -114,7 +114,8 @@ export const toggleProductoNuevo = async (sku, estadoActual) => {
   const { data, error } = await supabase
     .from('productos_medicos_v2')
     .update({ es_nuevo: !estadoActual })
-    .eq('mi_sku', sku);
+    .eq('mi_sku', sku)
+    .select(); // <-- AGREGADO
 
   if (error) throw error;
   return data;
@@ -149,7 +150,8 @@ export const crearProducto = async (nuevo) => {
         oemcross: nuevo.oemcross,
         es_nuevo: true // Todo producto que crees desde el panel, nacerá como "nuevo"
       }
-    ]);
+    ])
+    .select(); // <-- AGREGADO
 
   if (error) throw error;
   return data;
@@ -181,7 +183,8 @@ export const actualizarProducto = async (sku, actualizado) => {
         especificaciones: actualizado.especificaciones,
         oemcross: actualizado.oemcross
     })
-    .eq('mi_sku', sku);
+    .eq('mi_sku', sku)
+    .select(); // <-- AGREGADO
 
   if (error) throw error;
   return data;
@@ -192,7 +195,8 @@ export const toggleProductoDestacado = async (sku, estadoActual) => {
   const { data, error } = await supabase
     .from('productos_medicos_v2')
     .update({ destacado: !estadoActual })
-    .eq('mi_sku', sku);
+    .eq('mi_sku', sku)
+    .select(); // <-- AGREGADO
 
   if (error) throw error;
   return data;

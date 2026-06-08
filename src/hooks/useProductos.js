@@ -2,15 +2,16 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../api/supabase';
 
-// ✅ Exportación nombrada
 export const useProductos = (subcategoriaId, filtrosSeleccionados = {}, paginaActual = 1) => {
 
   const [productos, setProductos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [totalPaginas, setTotalPaginas] = useState(0);
 
+  // Convertimos el objeto a texto para que el useEffect lo compare correctamente
+  const filtrosString = JSON.stringify(filtrosSeleccionados);
+
   useEffect(() => {
-    // Si no hay subcategoría, no hacemos nada (y dejamos de cargar)
     if (!subcategoriaId) {
       setProductos([]);
       setTotalPaginas(0);
@@ -26,12 +27,11 @@ export const useProductos = (subcategoriaId, filtrosSeleccionados = {}, paginaAc
           .select('*', { count: 'exact' })
           .eq('subcategoria', subcategoriaId);
 
-        // Aplicamos los filtros JSONB si existen
+        // Aquí seguimos usando el objeto original, ya que a Supabase sí le sirve como objeto
         if (filtrosSeleccionados && Object.keys(filtrosSeleccionados).length > 0) {
           query = query.contains('especificaciones', filtrosSeleccionados);
         }
 
-        // Lógica de paginación
         const itemsPorPagina = 12;
         const desde = (paginaActual - 1) * itemsPorPagina;
         const hasta = desde + itemsPorPagina - 1;
@@ -55,8 +55,8 @@ export const useProductos = (subcategoriaId, filtrosSeleccionados = {}, paginaAc
 
     fetchProductos();
 
-  // Se vuelve a ejecutar si cambia la subcategoría, los filtros o la página.
-  }, [subcategoriaId, filtrosSeleccionados, paginaActual]);
+  // Reemplazamos filtrosSeleccionados por filtrosString
+  }, [subcategoriaId, filtrosString, paginaActual]);
 
   return { productos, loading, totalPaginas };
 };

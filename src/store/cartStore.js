@@ -3,9 +3,13 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
 // Precio final que se cobra: el sugerido (vs competencia) con fallback al viejo.
-const precioFinal = (producto) =>
-  Number(producto.precio_venta_sugerido ?? producto.precio ?? 0);
-
+// Precio final que se cobra: aseguramos que sea un número válido mayor a 0
+const precioFinal = (producto) => {
+  const precioSugerido = parseFloat(producto.precio_venta_sugerido);
+  return precioSugerido > 0 
+    ? precioSugerido 
+    : (parseFloat(producto.precio) || 0);
+};
 export const useCartStore = create(
   persist(
     (set, get) => ({
@@ -34,6 +38,19 @@ export const useCartStore = create(
             ]
           });
         }
+      },
+      
+      actualizarCantidad: (skuId, nuevaCantidad) => {
+        // Aseguramos que la cantidad nunca baje de 1
+        const cantidadValida = Math.max(1, Number(nuevaCantidad) || 1);
+        
+        set({
+          carrito: get().carrito.map(item =>
+            item.mi_sku === skuId
+              ? { ...item, cantidad: cantidadValida }
+              : item
+          )
+        });
       },
 
       eliminarDelCarrito: (skuId) => {
