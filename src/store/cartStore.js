@@ -2,7 +2,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
-// Precio final que se cobra: el sugerido (vs competencia) con fallback al viejo.
 // Precio final que se cobra: aseguramos que sea un número válido mayor a 0
 const precioFinal = (producto) => {
   const precioSugerido = parseFloat(producto.precio_venta_sugerido);
@@ -10,6 +9,7 @@ const precioFinal = (producto) => {
     ? precioSugerido 
     : (parseFloat(producto.precio) || 0);
 };
+
 export const useCartStore = create(
   persist(
     (set, get) => ({
@@ -60,7 +60,7 @@ export const useCartStore = create(
       limpiarCarrito: () => set({ carrito: [] }),
     }),
     {
-      name: 'carrito-catsen',
+      name: 'carrito-vitalsupply', // <-- CAMBIADO AQUÍ PARA REFLÉJAR LA IDENTIDAD CORRECTA
     }
   )
 );
