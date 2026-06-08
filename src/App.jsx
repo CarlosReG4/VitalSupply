@@ -56,6 +56,7 @@ function App() {
             <Suspense fallback={<CargandoPantalla />}>
               <Routes>
                 <Route path="/" element={<Home />} />
+<<<<<<< HEAD
                 
                 {/* Rutas Públicas - Traducidas y limpias */}
                 <Route path="/about-us" element={<Nosotros />} />
@@ -78,6 +79,28 @@ function App() {
                 <Route path="/qr/:slug" element={<QRRedirect />} />
 
                 {/* Panel de administración */}
+=======
+                <Route path="/nosotros" element={<Nosotros />} />
+                <Route path="/tienda" element={<Tienda />} />
+                <Route path="/categorias" element={<Categorias />} />
+                <Route path="/marcas" element={<Marcas />} />
+                <Route path="/promociones" element={<Promociones />} />
+                <Route path="/nuevos" element={<Nuevos />} />
+                <Route path="/buscar" element={<Busqueda />} />
+                <Route path="/contacto" element={<Contacto />} />
+                <Route path="/returns" element={<Returns />} />
+                <Route path="/shipping" element={<Shipping />} />
+                <Route path="/mayoristas" element={<Mayoristas />} />
+                <Route path="/terminos" element={<Terminos />} />
+                <Route path="/blogs" element={<Blogs />} />
+                <Route path="/producto/:id" element={<ProductoDetalle />} />
+                <Route path="/subcategoria/:subId" element={<SubcategoriaDetalle />} />
+
+                {/* Ruta para capturar los códigos QR dinámicos */}
+                <Route path="/qr/:slug" element={<QRRedirect />} />
+
+                {/* Panel de administración: login público, dashboard protegido */}
+>>>>>>> 53b4523e379b789749bcb5db9b16088b73afbfbd
                 <Route path="/admin/login" element={<Login />} />
                 <Route
                   path="/admin"
@@ -88,7 +111,11 @@ function App() {
                   }
                 />
 
+<<<<<<< HEAD
                 {/* Pago con Stripe - Estas es mejor dejarlas así si Stripe ya está configurado con ellas */}
+=======
+                {/* Pago con Stripe */}
+>>>>>>> 53b4523e379b789749bcb5db9b16088b73afbfbd
                 <Route path="/pago-exitoso" element={<PagoExitoso />} />
                 <Route path="/pago-cancelado" element={<PagoCancelado />} />
 

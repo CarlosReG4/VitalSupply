@@ -114,8 +114,12 @@ export const toggleProductoNuevo = async (sku, estadoActual) => {
   const { data, error } = await supabase
     .from('productos_medicos_v2')
     .update({ es_nuevo: !estadoActual })
+<<<<<<< HEAD
     .eq('mi_sku', sku)
     .select(); // <-- AGREGADO
+=======
+    .eq('mi_sku', sku);
+>>>>>>> 53b4523e379b789749bcb5db9b16088b73afbfbd
 
   if (error) throw error;
   return data;
@@ -150,8 +154,12 @@ export const crearProducto = async (nuevo) => {
         oemcross: nuevo.oemcross,
         es_nuevo: true // Todo producto que crees desde el panel, nacerá como "nuevo"
       }
+<<<<<<< HEAD
     ])
     .select(); // <-- AGREGADO
+=======
+    ]);
+>>>>>>> 53b4523e379b789749bcb5db9b16088b73afbfbd
 
   if (error) throw error;
   return data;
@@ -183,8 +191,12 @@ export const actualizarProducto = async (sku, actualizado) => {
         especificaciones: actualizado.especificaciones,
         oemcross: actualizado.oemcross
     })
+<<<<<<< HEAD
     .eq('mi_sku', sku)
     .select(); // <-- AGREGADO
+=======
+    .eq('mi_sku', sku);
+>>>>>>> 53b4523e379b789749bcb5db9b16088b73afbfbd
 
   if (error) throw error;
   return data;
@@ -195,8 +207,12 @@ export const toggleProductoDestacado = async (sku, estadoActual) => {
   const { data, error } = await supabase
     .from('productos_medicos_v2')
     .update({ destacado: !estadoActual })
+<<<<<<< HEAD
     .eq('mi_sku', sku)
     .select(); // <-- AGREGADO
+=======
+    .eq('mi_sku', sku);
+>>>>>>> 53b4523e379b789749bcb5db9b16088b73afbfbd
 
   if (error) throw error;
   return data;
@@ -211,6 +227,7 @@ export const eliminarProducto = async (sku) => {
 
   if (error) throw error;
   return true;
+<<<<<<< HEAD
 
 };
 
@@ -239,4 +256,6 @@ export const fetchProductosPorSubcategoriaAvanzado = async (subcategoriaId, pagi
     data: data || [], 
     count: count || 0 
   };
+=======
+>>>>>>> 53b4523e379b789749bcb5db9b16088b73afbfbd
 };

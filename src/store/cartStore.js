@@ -2,6 +2,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
+<<<<<<< HEAD
 // Precio final que se cobra: aseguramos que sea un número válido mayor a 0
 const precioFinal = (producto) => {
   const precioSugerido = parseFloat(producto.precio_venta_sugerido);
@@ -9,6 +10,11 @@ const precioFinal = (producto) => {
     ? precioSugerido 
     : (parseFloat(producto.precio) || 0);
 };
+=======
+// Precio final que se cobra: el sugerido (vs competencia) con fallback al viejo.
+const precioFinal = (producto) =>
+  Number(producto.precio_venta_sugerido ?? producto.precio ?? 0);
+>>>>>>> 53b4523e379b789749bcb5db9b16088b73afbfbd
 
 export const useCartStore = create(
   persist(
@@ -39,6 +45,7 @@ export const useCartStore = create(
           });
         }
       },
+<<<<<<< HEAD
       
       actualizarCantidad: (skuId, nuevaCantidad) => {
         // Aseguramos que la cantidad nunca baje de 1
@@ -52,6 +59,8 @@ export const useCartStore = create(
           )
         });
       },
+=======
+>>>>>>> 53b4523e379b789749bcb5db9b16088b73afbfbd
 
       eliminarDelCarrito: (skuId) => {
         set({ carrito: get().carrito.filter(item => item.mi_sku !== skuId) });
@@ -60,7 +69,11 @@ export const useCartStore = create(
       limpiarCarrito: () => set({ carrito: [] }),
     }),
     {
+<<<<<<< HEAD
       name: 'carrito-vitalsupply', // <-- CAMBIADO AQUÍ PARA REFLÉJAR LA IDENTIDAD CORRECTA
+=======
+      name: 'carrito-catsen',
+>>>>>>> 53b4523e379b789749bcb5db9b16088b73afbfbd
     }
   )
 );

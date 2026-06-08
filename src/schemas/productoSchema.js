@@ -54,10 +54,16 @@ export const productoSchema = z.object({
   destacado: z.boolean().nullable().optional(),
 
   // Especificaciones y tablas JSON / compatibilidad
+<<<<<<< HEAD
   especificaciones: z.array(z.any()).default([]),
   compatibility: z.array(z.any()).default([]),
   oemcross: z.array(z.any()).default([]),
 
+=======
+  especificaciones: z.any().optional(),
+  compatibility: z.any().optional(),
+  oemcross: z.any().optional(),
+>>>>>>> 53b4523e379b789749bcb5db9b16088b73afbfbd
 }).passthrough(); // deja pasar cualquier OTRO campo sin borrarlo (a prueba de futuro)
 
 // Validador para arreglos completos (cuando traemos varios productos de golpe)
