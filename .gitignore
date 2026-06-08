@@ -22,7 +22,6 @@ npm-debug.log*
 
 # Supabase temporal
 supabase/.temp
-<<<<<<< HEAD
+
 credentials.json
-=======
->>>>>>> 53b4523e379b789749bcb5db9b16088b73afbfbd
+
