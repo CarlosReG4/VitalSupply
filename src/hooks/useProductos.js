@@ -1,66 +1,49 @@
-// src/store/cartStore.js
-import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+// src/hooks/useProductos.js
+import { useState, useEffect } from 'react';
+import { fetchProductosPorSubcategoriaAvanzado } from '../api/productos';
 
-// Precio final que se cobra: aseguramos que sea un número válido mayor a 0
-const precioFinal = (producto) => {
-  const precioSugerido = parseFloat(producto.precio_venta_sugerido);
-  return precioSugerido > 0 
-    ? precioSugerido 
-    : (parseFloat(producto.precio) || 0);
-};
+export const useProductos = (subcategoriaId, filtrosSeleccionados = {}, paginaActual = 1) => {
+  const [productos, setProductos] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [totalPaginas, setTotalPaginas] = useState(0);
 
-export const useCartStore = create(
-  persist(
-    (set, get) => ({
-      carrito: [],
+  // Convertimos el objeto a texto para que el useEffect lo compare correctamente
+  const filtrosString = JSON.stringify(filtrosSeleccionados);
 
-      agregarAlCarrito: (producto) => {
-        const carritoActual = get().carrito;
-        const productoExistente = carritoActual.find(item => item.mi_sku === producto.mi_sku);
-
-        // Cantidad que pidió el usuario (selector del detalle). Mínimo 1.
-        const cantidadAAgregar = Math.max(1, Number(producto.cantidad) || 1);
-
-        if (productoExistente) {
-          set({
-            carrito: carritoActual.map(item =>
-              item.mi_sku === producto.mi_sku
-                ? { ...item, cantidad: (item.cantidad || 1) + cantidadAAgregar }
-                : item
-            )
-          });
-        } else {
-          set({
-            carrito: [
-              ...carritoActual,
-              { ...producto, precio: precioFinal(producto), cantidad: cantidadAAgregar }
-            ]
-          });
-        }
-      },
-      
-      actualizarCantidad: (skuId, nuevaCantidad) => {
-        // Aseguramos que la cantidad nunca baje de 1
-        const cantidadValida = Math.max(1, Number(nuevaCantidad) || 1);
-        
-        set({
-          carrito: get().carrito.map(item =>
-            item.mi_sku === skuId
-              ? { ...item, cantidad: cantidadValida }
-              : item
-          )
-        });
-      },
-
-      eliminarDelCarrito: (skuId) => {
-        set({ carrito: get().carrito.filter(item => item.mi_sku !== skuId) });
-      },
-
-      limpiarCarrito: () => set({ carrito: [] }),
-    }),
-    {
-      name: 'carrito-vitalsupply', // <-- Identidad correcta de la tienda
+  useEffect(() => {
+    if (!subcategoriaId) {
+      setProductos([]);
+      setTotalPaginas(0);
+      setLoading(false);
+      return;
     }
-  )
-);
+
+    const cargarProductos = async () => {
+      setLoading(true);
+      try {
+        const itemsPorPagina = 12;
+        
+        // Llamamos a la API centralizada
+        const { data, count } = await fetchProductosPorSubcategoriaAvanzado(
+          subcategoriaId,
+          paginaActual,
+          itemsPorPagina,
+          JSON.parse(filtrosString)
+        );
+
+        setProductos(data || []);
+        setTotalPaginas(Math.ceil((count || 0) / itemsPorPagina));
+      } catch (error) {
+        console.error("Error fetching products:", error);
+        setProductos([]);
+        setTotalPaginas(0);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    cargarProductos();
+  }, [subcategoriaId, filtrosString, paginaActual]);
+
+  return { productos, loading, totalPaginas };
+};

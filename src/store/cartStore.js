@@ -60,7 +60,7 @@ export const useCartStore = create(
       limpiarCarrito: () => set({ carrito: [] }),
     }),
     {
-      name: 'carrito-vitalsupply', // <-- CAMBIADO AQUÍ PARA REFLÉJAR LA IDENTIDAD CORRECTA
+      name: 'carrito-vitalsupply', // Identidad correcta de la tienda
     }
   )
 );
