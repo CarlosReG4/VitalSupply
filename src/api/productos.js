@@ -115,7 +115,7 @@ export const toggleProductoNuevo = async (sku, estadoActual) => {
     .from('productos_medicos_v2')
     .update({ es_nuevo: !estadoActual })
     .eq('mi_sku', sku)
-    .select(); // <-- AGREGADO
+    .select();
 
   if (error) throw error;
   return data;
@@ -148,10 +148,10 @@ export const crearProducto = async (nuevo) => {
         compatibility: nuevo.compatibility,
         especificaciones: nuevo.especificaciones,
         oemcross: nuevo.oemcross,
-        es_nuevo: true // Todo producto que crees desde el panel, nacerá como "nuevo"
+        es_nuevo: true
       }
     ])
-    .select(); // <-- AGREGADO
+    .select();
 
   if (error) throw error;
   return data;
@@ -184,7 +184,7 @@ export const actualizarProducto = async (sku, actualizado) => {
         oemcross: actualizado.oemcross
     })
     .eq('mi_sku', sku)
-    .select(); // <-- AGREGADO
+    .select();
 
   if (error) throw error;
   return data;
@@ -196,7 +196,7 @@ export const toggleProductoDestacado = async (sku, estadoActual) => {
     .from('productos_medicos_v2')
     .update({ destacado: !estadoActual })
     .eq('mi_sku', sku)
-    .select(); // <-- AGREGADO
+    .select();
 
   if (error) throw error;
   return data;
@@ -211,8 +211,9 @@ export const eliminarProducto = async (sku) => {
 
   if (error) throw error;
   return true;
+}; // <-- ESTA ES LA LLAVE QUE FALTABA PARA CERRAR LA FUNCIÓN ELIMINAR
 
-  // NUEVA FUNCIÓN: Extraída del hook useProductos para centralizar la base de datos
+// NUEVA FUNCIÓN: Extraída del hook useProductos para centralizar la base de datos
 export const fetchProductosPorSubcategoriaAvanzado = async (subcategoriaId, paginaActual = 1, itemsPorPagina = 12, filtrosSeleccionados = {}) => {
   let query = supabase
     .from('productos_medicos_v2')
@@ -237,5 +238,4 @@ export const fetchProductosPorSubcategoriaAvanzado = async (subcategoriaId, pagi
     data: data || [], 
     count: count || 0 
   };
-};
 };
