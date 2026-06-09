@@ -211,4 +211,31 @@ export const eliminarProducto = async (sku) => {
 
   if (error) throw error;
   return true;
+
+  // NUEVA FUNCIÓN: Extraída del hook useProductos para centralizar la base de datos
+export const fetchProductosPorSubcategoriaAvanzado = async (subcategoriaId, paginaActual = 1, itemsPorPagina = 12, filtrosSeleccionados = {}) => {
+  let query = supabase
+    .from('productos_medicos_v2')
+    .select('*', { count: 'exact' })
+    .eq('subcategoria', subcategoriaId);
+
+  // Aplicamos los filtros JSONB si existen
+  if (filtrosSeleccionados && Object.keys(filtrosSeleccionados).length > 0) {
+    query = query.contains('especificaciones', filtrosSeleccionados);
+  }
+
+  const desde = (paginaActual - 1) * itemsPorPagina;
+  const hasta = desde + itemsPorPagina - 1;
+
+  const { data, error, count } = await query
+    .order('precio', { ascending: true })
+    .range(desde, hasta);
+
+  if (error) throw error;
+
+  return { 
+    data: data || [], 
+    count: count || 0 
+  };
+};
 };
