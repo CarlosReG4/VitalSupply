@@ -47,7 +47,7 @@ export const productoSchema = z.object({
   imagen_url_5: z.string().nullable().optional(),
   imagen_url_6: z.string().nullable().optional(),
 
-  // Características y compatibilidad (Aceptan JSONB/arrays/objetos)
+  // Características y compatibilidad
   especificaciones: z.any().optional(),
   compatibility: z.any().optional(),
   oemcross: z.any().optional(),
@@ -61,6 +61,6 @@ export const productoSchema = z.object({
 
 }).passthrough(); // Deja pasar campos extra de Supabase sin romper la app
 
-// Validadores para arreglos completos (código de tu socio)
+// Validadores para arreglos completos
 export const arrayProductosSchema = z.array(productoSchema);
 export const productosArraySchema = arrayProductosSchema;
