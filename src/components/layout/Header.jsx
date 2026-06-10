@@ -236,7 +236,7 @@ function Header() {
               <p className="text-gray-500 text-center mt-10">Your cart is empty.</p>
             ) : (
               carrito.map((producto, index) => (
-                <div key={producto.mi_sku} className="flex border-b pb-2 items-center relative group">
+                <div key={index} className="flex border-b pb-2 items-center relative group">
                   <img 
                     src={producto.imagen_url || '/sin-imagen.svg'} 
                     alt={producto.nombre}
@@ -244,35 +244,30 @@ function Header() {
                   />
                   <div className="flex-1 pr-6">
                     <p className="text-xs font-bold uppercase line-clamp-2">{producto.nombre}</p>
-                    <div className="flex items-center justify-between mt-2">
-                      <p className="text-blue-600 font-black text-sm">
-                        ${Number(producto.precio).toLocaleString('en-US', { minimumFractionDigits: 2 })}
-                      </p>
-                      
-                      {/* Controles de Cantidad (+ y -) */}
-                      <div className="flex items-center gap-2 bg-gray-100 rounded px-1 py-0.5">
-                        <button 
-                          onClick={() => actualizarCantidad(producto.mi_sku, (producto.cantidad || 1) - 1)}
-                          disabled={(producto.cantidad || 1) <= 1}
-                          className="text-gray-500 hover:text-gray-800 disabled:opacity-30 h-5 w-5 flex items-center justify-center transition-colors"
-                          title="Reducir cantidad"
-                        >
-                          <i className="fas fa-minus text-[10px]"></i>
-                        </button>
-                        
-                        <span className="text-xs font-bold w-4 text-center text-gray-700">
-                          {producto.cantidad || 1}
-                        </span>
-                        
-                        <button 
-                          onClick={() => actualizarCantidad(producto.mi_sku, (producto.cantidad || 1) + 1)}
-                          className="text-gray-500 hover:text-gray-800 h-5 w-5 flex items-center justify-center transition-colors"
-                          title="Aumentar cantidad"
-                        >
-                          <i className="fas fa-plus text-[10px]"></i>
-                        </button>
-                      </div>
+                    <p className="text-blue-600 font-black text-sm mt-1">
+                      ${Number(producto.precio).toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                    </p>
+                    
+                    {/* BOTONES DE CANTIDAD AGREGADOS AQUÍ */}
+                    <div className="flex items-center gap-3 mt-2 bg-gray-100 w-fit rounded-md px-2 py-1">
+                      <button 
+                        onClick={() => actualizarCantidad(producto.mi_sku, (producto.cantidad || 1) - 1)}
+                        className="text-gray-500 hover:text-blue-600 focus:outline-none"
+                        disabled={(producto.cantidad || 1) <= 1}
+                      >
+                        <i className="fas fa-minus text-xs"></i>
+                      </button>
+                      <span className="text-xs font-bold w-4 text-center">
+                        {producto.cantidad || 1}
+                      </span>
+                      <button 
+                        onClick={() => actualizarCantidad(producto.mi_sku, (producto.cantidad || 1) + 1)}
+                        className="text-gray-500 hover:text-blue-600 focus:outline-none"
+                      >
+                        <i className="fas fa-plus text-xs"></i>
+                      </button>
                     </div>
+
                   </div>
                   <button 
                     onClick={() => eliminarDelCarrito(producto.mi_sku)}

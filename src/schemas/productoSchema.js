@@ -1,6 +1,7 @@
+// src/schemas/productoSchema.js
 import { z } from 'zod';
 
-// Helper para precios opcionales de tu socio
+// Helper para precios opcionales
 const precioOpcional = z.union([z.number(), z.string()])
   .nullable()
   .optional()

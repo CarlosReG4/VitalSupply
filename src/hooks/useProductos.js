@@ -23,7 +23,7 @@ export const useProductos = (subcategoriaId, filtrosSeleccionados = {}, paginaAc
       try {
         const itemsPorPagina = 12;
         
-        // Llamamos a la API centralizada
+        // Llamamos a la API centralizada en lugar de usar Supabase directamente aquí
         const { data, count } = await fetchProductosPorSubcategoriaAvanzado(
           subcategoriaId,
           paginaActual,

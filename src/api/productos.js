@@ -114,8 +114,7 @@ export const toggleProductoNuevo = async (sku, estadoActual) => {
   const { data, error } = await supabase
     .from('productos_medicos_v2')
     .update({ es_nuevo: !estadoActual })
-    .eq('mi_sku', sku)
-    .select();
+    .eq('mi_sku', sku);
 
   if (error) throw error;
   return data;
@@ -148,10 +147,9 @@ export const crearProducto = async (nuevo) => {
         compatibility: nuevo.compatibility,
         especificaciones: nuevo.especificaciones,
         oemcross: nuevo.oemcross,
-        es_nuevo: true
+        es_nuevo: true // Todo producto que crees desde el panel, nacerá como "nuevo"
       }
-    ])
-    .select();
+    ]);
 
   if (error) throw error;
   return data;
@@ -183,8 +181,7 @@ export const actualizarProducto = async (sku, actualizado) => {
         especificaciones: actualizado.especificaciones,
         oemcross: actualizado.oemcross
     })
-    .eq('mi_sku', sku)
-    .select();
+    .eq('mi_sku', sku);
 
   if (error) throw error;
   return data;
@@ -195,8 +192,7 @@ export const toggleProductoDestacado = async (sku, estadoActual) => {
   const { data, error } = await supabase
     .from('productos_medicos_v2')
     .update({ destacado: !estadoActual })
-    .eq('mi_sku', sku)
-    .select();
+    .eq('mi_sku', sku);
 
   if (error) throw error;
   return data;
@@ -211,31 +207,4 @@ export const eliminarProducto = async (sku) => {
 
   if (error) throw error;
   return true;
-}; // <-- ESTA ES LA LLAVE QUE FALTABA PARA CERRAR LA FUNCIÓN ELIMINAR
-
-// NUEVA FUNCIÓN: Extraída del hook useProductos para centralizar la base de datos
-export const fetchProductosPorSubcategoriaAvanzado = async (subcategoriaId, paginaActual = 1, itemsPorPagina = 12, filtrosSeleccionados = {}) => {
-  let query = supabase
-    .from('productos_medicos_v2')
-    .select('*', { count: 'exact' })
-    .eq('subcategoria', subcategoriaId);
-
-  // Aplicamos los filtros JSONB si existen
-  if (filtrosSeleccionados && Object.keys(filtrosSeleccionados).length > 0) {
-    query = query.contains('especificaciones', filtrosSeleccionados);
-  }
-
-  const desde = (paginaActual - 1) * itemsPorPagina;
-  const hasta = desde + itemsPorPagina - 1;
-
-  const { data, error, count } = await query
-    .order('precio', { ascending: true })
-    .range(desde, hasta);
-
-  if (error) throw error;
-
-  return { 
-    data: data || [], 
-    count: count || 0 
-  };
 };

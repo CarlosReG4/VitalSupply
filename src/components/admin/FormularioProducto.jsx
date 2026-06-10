@@ -19,19 +19,26 @@ export default function FormularioProducto({ onClose, onProductoGuardado, produc
       setFormData({
         sku: productToEdit.mi_sku || '',
         nombre: productToEdit.nombre || '',
-
-
-        // ... (Mantén todo el código que ya tienes aquí adentro igual)
+        precio: productToEdit.precio || '',
+        precio_venta_sugerido: productToEdit.precio_venta_sugerido || '',
+        tiene_proveedor: productToEdit.tiene_proveedor !== false, // Default true
+        tipo: productToEdit.tipo || '',
+        url: productToEdit.url || '',
+        descripcion: productToEdit.descripcion || '',
+        categoria: productToEdit.categoria || '',
+        subcategoria: productToEdit.subcategoria || '',
+        sku_competencia: productToEdit.sku_competencia || '',
+        disponible: productToEdit.disponible !== false, // Default true
+        imagen_url: productToEdit.imagen_url || '',
+        imagen_url_2: productToEdit.imagen_url_2 || '',
+        imagen_url_3: productToEdit.imagen_url_3 || '',
+        imagen_url_4: productToEdit.imagen_url_4 || '',
+        imagen_url_5: productToEdit.imagen_url_5 || '',
+        imagen_url_6: productToEdit.imagen_url_6 || '',
+        // Los JSON los pasamos a texto para poder editarlos en los textarea
+        compatibility: JSON.stringify(productToEdit.compatibility || []),
+        especificaciones: JSON.stringify(productToEdit.especificaciones || []),
         oemcross: JSON.stringify(productToEdit.oemcross || [])
-      });
-    } else {
-      // NUEVO: Reiniciamos el estado por completo si no hay producto a editar
-      setFormData({
-        sku: '', nombre: '', precio: '', precio_venta_sugerido: '', tiene_proveedor: true,
-        tipo: '', url: '', descripcion: '',
-        categoria: '', subcategoria: '', sku_competencia: '', disponible: true,
-        imagen_url: '', imagen_url_2: '', imagen_url_3: '', imagen_url_4: '', imagen_url_5: '', imagen_url_6: '',
-        compatibility: '[]', especificaciones: '[]', oemcross: '[]'
       });
     }
   }, [productToEdit]);
@@ -53,7 +60,7 @@ export default function FormularioProducto({ onClose, onProductoGuardado, produc
       // y nos aseguramos de que la llave se llame "mi_sku" como en tu DB
       const datosParaGuardar = {
         ...formData,
-        mi_sku: formData.sku.trim(),
+        mi_sku: formData.sku,
         precio: parseFloat(formData.precio) || 0,
         precio_venta_sugerido: parseFloat(formData.precio_venta_sugerido) || null,
         compatibility: JSON.parse(formData.compatibility || '[]'),

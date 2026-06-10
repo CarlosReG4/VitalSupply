@@ -56,28 +56,26 @@ function App() {
             <Suspense fallback={<CargandoPantalla />}>
               <Routes>
                 <Route path="/" element={<Home />} />
-                
-                {/* Rutas Públicas - Traducidas y limpias */}
-                <Route path="/about-us" element={<Nosotros />} />
-                <Route path="/store" element={<Tienda />} />
-                <Route path="/categories" element={<Categorias />} />
-                <Route path="/brands" element={<Marcas />} />
-                <Route path="/promotions" element={<Promociones />} />
-                <Route path="/new-arrivals" element={<Nuevos />} />
-                <Route path="/search" element={<Busqueda />} />
-                <Route path="/contact" element={<Contacto />} />
+                <Route path="/nosotros" element={<Nosotros />} />
+                <Route path="/tienda" element={<Tienda />} />
+                <Route path="/categorias" element={<Categorias />} />
+                <Route path="/marcas" element={<Marcas />} />
+                <Route path="/promociones" element={<Promociones />} />
+                <Route path="/nuevos" element={<Nuevos />} />
+                <Route path="/buscar" element={<Busqueda />} />
+                <Route path="/contacto" element={<Contacto />} />
                 <Route path="/returns" element={<Returns />} />
                 <Route path="/shipping" element={<Shipping />} />
-                <Route path="/wholesale" element={<Mayoristas />} />
-                <Route path="/terms" element={<Terminos />} />
-                <Route path="/blog" element={<Blogs />} />
-                
-                {/* Rutas de detalle - Traducidas */}
-                <Route path="/product/:id" element={<ProductoDetalle />} />
-                <Route path="/subcategory/:subId" element={<SubcategoriaDetalle />} />
+                <Route path="/mayoristas" element={<Mayoristas />} />
+                <Route path="/terminos" element={<Terminos />} />
+                <Route path="/blogs" element={<Blogs />} />
+                <Route path="/producto/:id" element={<ProductoDetalle />} />
+                <Route path="/subcategoria/:subId" element={<SubcategoriaDetalle />} />
+
+                {/* Ruta para capturar los códigos QR dinámicos */}
                 <Route path="/qr/:slug" element={<QRRedirect />} />
 
-                {/* Panel de administración */}
+                {/* Panel de administración: login público, dashboard protegido */}
                 <Route path="/admin/login" element={<Login />} />
                 <Route
                   path="/admin"
@@ -88,7 +86,7 @@ function App() {
                   }
                 />
 
-                {/* Pago con Stripe - Estas es mejor dejarlas así si Stripe ya está configurado con ellas */}
+                {/* Pago con Stripe */}
                 <Route path="/pago-exitoso" element={<PagoExitoso />} />
                 <Route path="/pago-cancelado" element={<PagoCancelado />} />
 
