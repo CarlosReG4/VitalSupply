@@ -16,7 +16,6 @@ import RastrearPage from './pages/RastrearPage';
 // 2. Páginas con lazy loading (carga más rápida del sitio)
 const Home = lazy(() => import('./pages/Home'));
 const Nosotros = lazy(() => import('./pages/Nosotros'));
-// Fíjate que aquí ya NO existe el import de Tienda
 const Categorias = lazy(() => import('./pages/Categorias'));
 const Marcas = lazy(() => import('./pages/Marcas'));
 const Promociones = lazy(() => import('./pages/Promociones'));
@@ -59,7 +58,6 @@ function App() {
               <Routes>
                 <Route path="/" element={<Home />} />
                 <Route path="/nosotros" element={<Nosotros />} />
-                {/* La ruta de Tienda fue eliminada completamente de aquí */}
                 <Route path="/categorias" element={<Categorias />} />
                 <Route path="/marcas" element={<Marcas />} />
                 <Route path="/promociones" element={<Promociones />} />
