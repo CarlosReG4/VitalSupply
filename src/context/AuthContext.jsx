@@ -1,44 +1,51 @@
 // src/context/AuthContext.jsx
-import { createContext, useContext, useState, useEffect } from 'react';
+// Sesión global de cliente con Supabase Auth.
+// Envuelve la app en <AuthProvider> y usa el hook useAuth() en cualquier componente.
+
+import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '../api/supabase';
 
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
-  const [session, setSession] = useState(null);
-  const [cargando, setCargando] = useState(true);
+  const [usuario, setUsuario] = useState(null);
+  const [cargandoSesion, setCargandoSesion] = useState(true);
 
   useEffect(() => {
-    // Sesión actual al cargar
-    supabase.auth.getSession().then(({ data }) => {
-      setSession(data.session);
-      setCargando(false);
+    // Sesión inicial
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUsuario(session?.user ?? null);
+      setCargandoSesion(false);
     });
-
-    // Escuchar cambios de sesión (login / logout)
-    const { data: listener } = supabase.auth.onAuthStateChange((_event, newSession) => {
-      setSession(newSession);
+    // Cambios de sesión (login, logout, refresh)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_evento, session) => {
+      setUsuario(session?.user ?? null);
     });
-
-    return () => listener.subscription.unsubscribe();
+    return () => subscription.unsubscribe();
   }, []);
 
-  // ¿El usuario logueado es admin? Lo leemos de app_metadata.is_admin
-  const esAdmin = Boolean(
-    session?.user?.app_metadata?.is_admin === true
-  );
+  const registrarse = (email, password, nombre) =>
+    supabase.auth.signUp({
+      email,
+      password,
+      options: { data: { nombre } },
+    });
 
-  const login = (email, password) =>
+  const iniciarSesion = (email, password) =>
     supabase.auth.signInWithPassword({ email, password });
 
-  const logout = () => supabase.auth.signOut();
+  const cerrarSesion = () => supabase.auth.signOut();
+
+  const recuperarPassword = (email) =>
+    supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/cuenta`,
+    });
 
   return (
-    <AuthContext.Provider value={{ session, usuario: session?.user ?? null, esAdmin, cargando, login, logout }}>
+    <AuthContext.Provider value={{ usuario, cargandoSesion, registrarse, iniciarSesion, cerrarSesion, recuperarPassword }}>
       {children}
     </AuthContext.Provider>
   );
 }
 
-// eslint-disable-next-line react-refresh/only-export-components
 export const useAuth = () => useContext(AuthContext);

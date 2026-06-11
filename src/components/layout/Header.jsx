@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useCartStore } from '../../store/cartStore';
 import { iniciarPagoStripe } from '../../utils/checkout';
 import BotonPaypal from '../checkout/BotonPaypal';
+import { useAuth } from '../../context/AuthContext';
 
 const categoriesList = ['SpO2', 'ECG Cables', 'EKG Cables', 'NIBP', 'IBP Cables', 'Temperature', 'Fetal', 'Oxygen Sensors'];
 const otrosList = ['Promociones', 'Novedades'];
@@ -16,6 +17,10 @@ function Header() {
   const actualizarCantidad = useCartStore((state) => state.actualizarCantidad);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [pagando, setPagando] = useState(false);
+
+  // Sesión del cliente (null si no ha iniciado sesión)
+  const auth = useAuth();
+  const usuario = auth?.usuario ?? null;
 
   const manejarPagoStripe = async () => {
     try {
@@ -105,10 +110,11 @@ function Header() {
           </div>
           
           <div className="flex space-x-4 text-blue-900">
-            <a href="#" className="hover:text-blue-500 flex flex-col items-center">
-              <i className="far fa-user text-lg"></i>
-              <span className="text-[10px] mt-1 font-bold">ACCOUNT</span>
-            </a>
+            {/* CUENTA DE CLIENTE: lleva a /cuenta (login o panel según sesión) */}
+            <Link to="/cuenta" className="hover:text-blue-500 flex flex-col items-center">
+              <i className={`${usuario ? 'fas' : 'far'} fa-user text-lg ${usuario ? 'text-blue-600' : ''}`}></i>
+              <span className="text-[10px] mt-1 font-bold">{usuario ? 'MY ACCOUNT' : 'ACCOUNT'}</span>
+            </Link>
             <button onClick={() => setIsCartOpen(true)} className="hover:text-blue-500 flex flex-col items-center relative cursor-pointer">
               <i className="fas fa-shopping-cart text-lg"></i>
               {carrito.length > 0 && (
@@ -166,6 +172,11 @@ function Header() {
             </div>
           </div>
 
+          {/* RASTREO DE PEDIDO */}
+          <Link to="/rastrear" className="hover:text-blue-300 transition-colors py-3">
+            <i className="fas fa-truck mr-1"></i> Track Order
+          </Link>
+
           <Link to="/nosotros" className="hover:text-blue-300 transition-colors py-3">About Us</Link>
         </div>
 
@@ -211,7 +222,15 @@ function Header() {
                 </Link>
               ))}
 
-              <Link to="/nosotros" onClick={() => setMenuMovilAbierto(false)} className="block py-2.5 px-2 mt-2 rounded hover:bg-blue-800 font-semibold border-t border-blue-800 pt-3">
+              {/* RASTREO Y CUENTA EN MÓVIL */}
+              <Link to="/rastrear" onClick={() => setMenuMovilAbierto(false)} className="block py-2.5 px-2 mt-2 rounded hover:bg-blue-800 font-semibold border-t border-blue-800 pt-3">
+                <i className="fas fa-truck w-5"></i> Track Order
+              </Link>
+              <Link to="/cuenta" onClick={() => setMenuMovilAbierto(false)} className="block py-2.5 px-2 rounded hover:bg-blue-800 font-semibold">
+                <i className="far fa-user w-5"></i> {usuario ? 'My Account' : 'Account / Sign in'}
+              </Link>
+
+              <Link to="/nosotros" onClick={() => setMenuMovilAbierto(false)} className="block py-2.5 px-2 rounded hover:bg-blue-800 font-semibold">
                 <i className="fas fa-circle-info w-5"></i> About Us
               </Link>
             </div>
@@ -248,7 +267,7 @@ function Header() {
                       ${Number(producto.precio).toLocaleString('en-US', { minimumFractionDigits: 2 })}
                     </p>
                     
-                    {/* BOTONES DE CANTIDAD AGREGADOS AQUÍ */}
+                    {/* BOTONES DE CANTIDAD */}
                     <div className="flex items-center gap-3 mt-2 bg-gray-100 w-fit rounded-md px-2 py-1">
                       <button 
                         onClick={() => actualizarCantidad(producto.mi_sku, (producto.cantidad || 1) - 1)}
