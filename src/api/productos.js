@@ -5,13 +5,12 @@ import { productoSchema } from '../schemas/productoSchema.js';
 // el schema, lo deja pasar tal cual en vez de tirar toda la lista.
 function parsearLista(lista) {
   return (lista || []).map((p) => {
-    // --- NUEVA LÓGICA DE PRECIOS ---
-    // Si el producto tiene un precio_venta_sugerido válido y mayor a 0, 
+    // Si el producto tiene un precio_venta_sugerido válido y mayor a 0,
     // lo usamos; de lo contrario, conservamos el precio normal.
     const productoModificado = {
       ...p,
-      precio: p.precio_venta_sugerido && parseFloat(p.precio_venta_sugerido) > 0 
-        ? parseFloat(p.precio_venta_sugerido) 
+      precio: p.precio_venta_sugerido && parseFloat(p.precio_venta_sugerido) > 0
+        ? parseFloat(p.precio_venta_sugerido)
         : p.precio
     };
 
@@ -29,6 +28,8 @@ async function _fetchProductos({ categoria = null, subcategoria = null, filtros 
     p_oem_part: filtros.oemPart || null,
     p_pagina: pagina,
     p_limite: limite,
+    p_precio_min: filtros.precioMin != null ? Number(filtros.precioMin) : null,
+    p_precio_max: filtros.precioMax != null ? Number(filtros.precioMax) : null,
   });
 
   if (error) {
@@ -37,10 +38,8 @@ async function _fetchProductos({ categoria = null, subcategoria = null, filtros 
   }
 
   // La RPC devuelve un ARRAY con un elemento: [{ productos, total }].
-  // Hay que tomar data[0], no data, o todo sale vacío.
   const row = (data && data[0]) || { productos: [], total: 0 };
 
-  // Parseo robusto: un producto raro no tumba toda la categoría.
   return {
     productos: parsearLista(row.productos),
     total: Number(row.total) || 0
@@ -57,7 +56,7 @@ export const obtenerProductosPorSubcategoria = (subcategoria, pagina = 1, limite
 export const buscarPorCompatibilidad = async (marca, modelo, pagina = 1, limite = 30) => {
   const from = (pagina - 1) * limite;
   const to = from + limite - 1;
-  
+
   const { data, error, count } = await supabase
     .rpc('buscar_compatibles', {
       marca_query: marca,
@@ -70,14 +69,13 @@ export const buscarPorCompatibilidad = async (marca, modelo, pagina = 1, limite 
     throw error;
   }
 
-  return { 
-    productos: parsearLista(data), 
-    total: count || 0 
+  return {
+    productos: parsearLista(data),
+    total: count || 0
   };
 };
 
-// --- AQUÍ ESTÁ EL CAMBIO PRINCIPAL ---
-// Agregamos el parámetro "vista" y el filtro "es_nuevo"
+// Búsqueda por texto con soporte de pestaña "nuevos"
 export const buscarProductos = async (terminoBusqueda = '', pagina = 1, limite = 30, vista = 'catalogo') => {
   const from = (pagina - 1) * limite;
   const to = from + limite - 1;
@@ -91,7 +89,6 @@ export const buscarProductos = async (terminoBusqueda = '', pagina = 1, limite =
     query = query.or(`nombre.ilike.%${busquedaLimpia}%,mi_sku.ilike.%${busquedaLimpia}%,sku_competencia.ilike.%${busquedaLimpia}%`);
   }
 
-  // MAGIA AQUÍ: Filtramos para que la pestaña de Nuevos SOLO muestre los nuevos
   if (vista === 'nuevos') {
     query = query.eq('es_nuevo', true);
   }
@@ -103,13 +100,13 @@ export const buscarProductos = async (terminoBusqueda = '', pagina = 1, limite =
     throw error;
   }
 
-  return { 
-    productos: parsearLista(data), 
-    total: count || 0 
+  return {
+    productos: parsearLista(data),
+    total: count || 0
   };
-}; 
+};
 
-// NUEVA FUNCIÓN: Para el checkbox de productos nuevos
+// Checkbox de productos nuevos
 export const toggleProductoNuevo = async (sku, estadoActual) => {
   const { data, error } = await supabase
     .from('productos_medicos_v2')
@@ -120,34 +117,34 @@ export const toggleProductoNuevo = async (sku, estadoActual) => {
   return data;
 };
 
-// NUEVA FUNCIÓN: Para insertar productos con TODOS los campos
+// Insertar producto con TODOS los campos
 export const crearProducto = async (nuevo) => {
   const { data, error } = await supabase
     .from('productos_medicos_v2')
     .insert([
       {
-        mi_sku: nuevo.mi_sku, 
-        nombre: nuevo.nombre, 
+        mi_sku: nuevo.mi_sku,
+        nombre: nuevo.nombre,
         precio: parseFloat(nuevo.precio) || 0,
         precio_venta_sugerido: nuevo.precio_venta_sugerido ?? null,
         tiene_proveedor: nuevo.tiene_proveedor ?? true,
-        tipo: nuevo.tipo, 
-        url: nuevo.url, 
+        tipo: nuevo.tipo,
+        url: nuevo.url,
         descripcion: nuevo.descripcion,
-        categoria: nuevo.categoria, 
+        categoria: nuevo.categoria,
         subcategoria: nuevo.subcategoria,
-        sku_competencia: nuevo.sku_competencia, 
+        sku_competencia: nuevo.sku_competencia,
         disponible: nuevo.disponible,
-        imagen_url: nuevo.imagen_url, 
-        imagen_url_2: nuevo.imagen_url_2, 
-        imagen_url_3: nuevo.imagen_url_3, 
-        imagen_url_4: nuevo.imagen_url_4, 
-        imagen_url_5: nuevo.imagen_url_5, 
+        imagen_url: nuevo.imagen_url,
+        imagen_url_2: nuevo.imagen_url_2,
+        imagen_url_3: nuevo.imagen_url_3,
+        imagen_url_4: nuevo.imagen_url_4,
+        imagen_url_5: nuevo.imagen_url_5,
         imagen_url_6: nuevo.imagen_url_6,
         compatibility: nuevo.compatibility,
         especificaciones: nuevo.especificaciones,
         oemcross: nuevo.oemcross,
-        es_nuevo: true // Todo producto que crees desde el panel, nacerá como "nuevo"
+        es_nuevo: true
       }
     ]);
 
@@ -155,27 +152,27 @@ export const crearProducto = async (nuevo) => {
   return data;
 };
 
-// NUEVA FUNCIÓN: Para actualizar con TODOS los campos
+// Actualizar con TODOS los campos
 export const actualizarProducto = async (sku, actualizado) => {
   const { data, error } = await supabase
     .from('productos_medicos_v2')
     .update({
-        nombre: actualizado.nombre, 
+        nombre: actualizado.nombre,
         precio: parseFloat(actualizado.precio) || 0,
         precio_venta_sugerido: actualizado.precio_venta_sugerido ?? null,
         tiene_proveedor: actualizado.tiene_proveedor ?? true,
-        tipo: actualizado.tipo, 
-        url: actualizado.url, 
+        tipo: actualizado.tipo,
+        url: actualizado.url,
         descripcion: actualizado.descripcion,
-        categoria: actualizado.categoria, 
+        categoria: actualizado.categoria,
         subcategoria: actualizado.subcategoria,
-        sku_competencia: actualizado.sku_competencia, 
+        sku_competencia: actualizado.sku_competencia,
         disponible: actualizado.disponible,
-        imagen_url: actualizado.imagen_url, 
-        imagen_url_2: actualizado.imagen_url_2, 
-        imagen_url_3: actualizado.imagen_url_3, 
-        imagen_url_4: actualizado.imagen_url_4, 
-        imagen_url_5: actualizado.imagen_url_5, 
+        imagen_url: actualizado.imagen_url,
+        imagen_url_2: actualizado.imagen_url_2,
+        imagen_url_3: actualizado.imagen_url_3,
+        imagen_url_4: actualizado.imagen_url_4,
+        imagen_url_5: actualizado.imagen_url_5,
         imagen_url_6: actualizado.imagen_url_6,
         compatibility: actualizado.compatibility,
         especificaciones: actualizado.especificaciones,
@@ -187,7 +184,7 @@ export const actualizarProducto = async (sku, actualizado) => {
   return data;
 };
 
-// NUEVA FUNCIÓN: Para el checkbox (estrella) de productos destacados
+// Checkbox (estrella) de productos destacados
 export const toggleProductoDestacado = async (sku, estadoActual) => {
   const { data, error } = await supabase
     .from('productos_medicos_v2')
@@ -198,7 +195,7 @@ export const toggleProductoDestacado = async (sku, estadoActual) => {
   return data;
 };
 
-// NUEVA FUNCIÓN: Eliminar un producto por su SKU
+// Eliminar un producto por su SKU
 export const eliminarProducto = async (sku) => {
   const { error } = await supabase
     .from('productos_medicos_v2')
@@ -207,4 +204,30 @@ export const eliminarProducto = async (sku) => {
 
   if (error) throw error;
   return true;
+};
+
+// Paginación y filtros por subcategoría (usada por useProductos)
+// Usa la RPC get_productos_filtrados: filtra por manufacturer/model/oem (compatibility) y por precio.
+export const fetchProductosPorSubcategoriaAvanzado = async (subcategoriaId, paginaActual = 1, itemsPorPagina = 12, filtrosSeleccionados = {}) => {
+  const f = filtrosSeleccionados || {};
+
+  const { data, error } = await supabase.rpc('get_productos_filtrados', {
+    p_categoria: null,
+    p_subcategoria: subcategoriaId,
+    p_manufacturer: f.manufacturer || null,
+    p_model: f.model || null,
+    p_oem_part: f.oemPart || null,
+    p_pagina: paginaActual,
+    p_limite: itemsPorPagina,
+    p_precio_min: f.precioMin != null ? Number(f.precioMin) : null,
+    p_precio_max: f.precioMax != null ? Number(f.precioMax) : null,
+  });
+
+  if (error) throw error;
+
+  const row = (data && data[0]) || { productos: [], total: 0 };
+  return {
+    data: row.productos || [],
+    count: Number(row.total) || 0
+  };
 };

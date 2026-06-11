@@ -3,8 +3,8 @@ import React from 'react';
 import { useFiltrosCategoria } from '../../hooks/useFiltrosCategoria';
 
 /**
- * Tres dropdowns con cascading bidireccional.
- * Las opciones de cada dropdown se actualizan considerando los OTROS filtros activos.
+ * Cuatro dropdowns: OEM Part, Manufacturer, Model (con cascading bidireccional)
+ * y Price (filtro de rango independiente sobre la columna de precio).
  */
 export default function FiltroProductos({ categoria, subcategoria, filtros, onFiltrosChange }) {
   // 👇 Pasamos los filtros activos para que el hook recalcule las opciones
@@ -23,8 +23,28 @@ export default function FiltroProductos({ categoria, subcategoria, filtros, onFi
     onFiltrosChange(nuevo);
   };
 
+  // Price es un filtro de rango: setea precioMin/precioMax además de precioRango
+  const handlePrecio = (v) => {
+    const rangos = {
+      '1': { precioMin: 0, precioMax: 49.99 },
+      '2': { precioMin: 50, precioMax: 99.99 },
+      '3': { precioMin: 100, precioMax: 199.99 },
+      '4': { precioMin: 200, precioMax: 999999 },
+    };
+    const nuevo = { ...filtros };
+    delete nuevo.precioMin;
+    delete nuevo.precioMax;
+    delete nuevo.precioRango;
+    if (v && rangos[v]) {
+      nuevo.precioRango = v;
+      nuevo.precioMin = rangos[v].precioMin;
+      nuevo.precioMax = rangos[v].precioMax;
+    }
+    onFiltrosChange(nuevo);
+  };
+
   const limpiar = () => onFiltrosChange({});
-  const hayFiltrosActivos = manufacturer || model || oemPart;
+  const hayFiltrosActivos = manufacturer || model || oemPart || filtros.precioRango;
 
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-8">
@@ -43,7 +63,7 @@ export default function FiltroProductos({ categoria, subcategoria, filtros, onFi
         )}
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* OEM Part # */}
         <div className="relative">
           <label className="block text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1">
@@ -95,6 +115,24 @@ export default function FiltroProductos({ categoria, subcategoria, filtros, onFi
             {models.map((m) => (
               <option key={m} value={m}>{m}</option>
             ))}
+          </select>
+        </div>
+
+        {/* Price */}
+        <div className="relative">
+          <label className="block text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1">
+            Price (USD)
+          </label>
+          <select
+            value={filtros.precioRango || ''}
+            onChange={(e) => handlePrecio(e.target.value)}
+            className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm text-gray-700 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 cursor-pointer"
+          >
+            <option value="">— Todos —</option>
+            <option value="1">$10 - $49</option>
+            <option value="2">$50 - $99</option>
+            <option value="3">$100 - $199</option>
+            <option value="4">$200+</option>
           </select>
         </div>
       </div>
