@@ -1,12 +1,16 @@
 // src/components/categorias/FiltroProductos.jsx
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { useFiltrosCategoria } from '../../hooks/useFiltrosCategoria';
 
 /**
  * Cuatro dropdowns: OEM Part, Manufacturer, Model (con cascading bidireccional)
  * y Price (filtro de rango independiente sobre la columna de precio).
+ * Textos internacionalizados con react-i18next (ES/EN).
  */
 export default function FiltroProductos({ categoria, subcategoria, filtros, onFiltrosChange }) {
+  const { t } = useTranslation();
+
   // 👇 Pasamos los filtros activos para que el hook recalcule las opciones
   const { cargando, manufacturers, models, oems } = useFiltrosCategoria(
     { categoria, subcategoria },
@@ -51,14 +55,14 @@ export default function FiltroProductos({ categoria, subcategoria, filtros, onFi
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-xs font-black uppercase tracking-[0.2em] text-gray-700">
           <i className="fas fa-filter mr-2 text-blue-600"></i>
-          Filtrar por
+          {t('catalog.filterBy')}
         </h3>
         {hayFiltrosActivos && (
           <button
             onClick={limpiar}
             className="text-[11px] font-bold text-red-500 hover:text-red-700 uppercase tracking-widest transition-colors"
           >
-            <i className="fas fa-times mr-1"></i> Clear filters
+            <i className="fas fa-times mr-1"></i> {t('catalog.clearFilters')}
           </button>
         )}
       </div>
@@ -67,7 +71,7 @@ export default function FiltroProductos({ categoria, subcategoria, filtros, onFi
         {/* OEM Part # */}
         <div className="relative">
           <label className="block text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1">
-            OEM Part # (Optional)
+            {t('catalog.oemPart')}
           </label>
           <select
             value={oemPart}
@@ -75,7 +79,7 @@ export default function FiltroProductos({ categoria, subcategoria, filtros, onFi
             disabled={cargando}
             className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm text-gray-700 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 cursor-pointer disabled:opacity-50"
           >
-            <option value="">— Todos —</option>
+            <option value="">{t('catalog.all')}</option>
             {oems.map((p) => (
               <option key={p} value={p}>{p}</option>
             ))}
@@ -85,7 +89,7 @@ export default function FiltroProductos({ categoria, subcategoria, filtros, onFi
         {/* Manufacturer */}
         <div className="relative">
           <label className="block text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1">
-            Manufacturer
+            {t('catalog.manufacturer')}
           </label>
           <select
             value={manufacturer}
@@ -93,7 +97,7 @@ export default function FiltroProductos({ categoria, subcategoria, filtros, onFi
             disabled={cargando}
             className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm text-gray-700 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 cursor-pointer disabled:opacity-50"
           >
-            <option value="">— Todos —</option>
+            <option value="">{t('catalog.all')}</option>
             {manufacturers.map((m) => (
               <option key={m} value={m}>{m}</option>
             ))}
@@ -103,7 +107,7 @@ export default function FiltroProductos({ categoria, subcategoria, filtros, onFi
         {/* Model */}
         <div className="relative">
           <label className="block text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1">
-            Model
+            {t('catalog.model')}
           </label>
           <select
             value={model}
@@ -111,7 +115,7 @@ export default function FiltroProductos({ categoria, subcategoria, filtros, onFi
             disabled={cargando}
             className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm text-gray-700 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 cursor-pointer disabled:opacity-50"
           >
-            <option value="">— Todos —</option>
+            <option value="">{t('catalog.all')}</option>
             {models.map((m) => (
               <option key={m} value={m}>{m}</option>
             ))}
@@ -121,14 +125,14 @@ export default function FiltroProductos({ categoria, subcategoria, filtros, onFi
         {/* Price */}
         <div className="relative">
           <label className="block text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1">
-            Price (USD)
+            {t('catalog.price')}
           </label>
           <select
             value={filtros.precioRango || ''}
             onChange={(e) => handlePrecio(e.target.value)}
             className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm text-gray-700 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 cursor-pointer"
           >
-            <option value="">— Todos —</option>
+            <option value="">{t('catalog.all')}</option>
             <option value="1">$10 - $49</option>
             <option value="2">$50 - $99</option>
             <option value="3">$100 - $199</option>
@@ -139,7 +143,7 @@ export default function FiltroProductos({ categoria, subcategoria, filtros, onFi
 
       {cargando && (
         <p className="text-[11px] text-gray-400 mt-3">
-          <i className="fas fa-spinner fa-spin mr-1"></i> Cargando opciones...
+          <i className="fas fa-spinner fa-spin mr-1"></i> {t('catalog.loadingOptions')}
         </p>
       )}
     </div>
