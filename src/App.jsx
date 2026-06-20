@@ -1,3 +1,4 @@
+import { Analytics } from '@vercel/analytics/react';
 import { lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
@@ -100,6 +101,7 @@ function App() {
 
           <Footer />
           <BotonWhatsapp />
+          <Analytics />
         </BrowserRouter>
       </AuthProvider>
     </HelmetProvider>
