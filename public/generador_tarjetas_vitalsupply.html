@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Generador de Tarjetas — VitalSupply</title>
+<style>
+  :root{
+    --navy:#152647; --navy2:#1E3A6E; --blue:#3B82C4; --blue-lt:#EAF2FA;
+    --ink:#1A2233; --mut:#6B7688; --line:#DDE3EC; --bg:#F4F6F9; --ok:#1B7F4D;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  body{margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif; background:var(--bg); color:var(--ink);}
+  header{background:var(--navy); color:#fff; padding:14px 16px; display:flex; align-items:center; gap:10px;}
+  header svg{flex:none;}
+  header h1{font-size:15px; margin:0; font-weight:700; letter-spacing:.3px;}
+  header p{font-size:11px; margin:2px 0 0; opacity:.75;}
+  .wrap{max-width:560px; margin:0 auto; padding:14px 14px 40px;}
+  .card{background:#fff; border:1px solid var(--line); border-radius:14px; padding:14px; margin-bottom:14px;}
+  label{display:block; font-size:11px; font-weight:700; color:var(--mut); text-transform:uppercase; letter-spacing:.6px; margin:10px 0 4px;}
+  input[type=text], select, textarea{
+    width:100%; padding:10px 12px; border:1px solid var(--line); border-radius:9px;
+    font-size:15px; font-family:inherit; background:#FBFCFE; color:var(--ink);
+  }
+  input:focus, select:focus, textarea:focus{outline:2px solid var(--blue); border-color:var(--blue);}
+  .row{display:flex; gap:8px;}
+  .row > div{flex:1;}
+  .specrow{display:flex; gap:8px; margin-bottom:6px;}
+  .specrow input{flex:1;}
+  .photo-btn{
+    display:flex; align-items:center; justify-content:center; gap:8px; width:100%;
+    padding:14px; border:2px dashed var(--blue); border-radius:10px; background:var(--blue-lt);
+    color:var(--navy2); font-weight:700; font-size:14px; cursor:pointer; margin-top:4px;
+  }
+  .photo-btn.loaded{border-style:solid; background:#EDFAF2; border-color:var(--ok); color:var(--ok);}
+  #file{display:none;}
+  .preview-box{background:#fff; border:1px solid var(--line); border-radius:14px; padding:10px; margin-bottom:14px;}
+  #canvas{width:100%; height:auto; border-radius:8px; display:block; background:#eee;}
+  .dl{
+    display:flex; align-items:center; justify-content:center; gap:8px; width:100%;
+    padding:15px; border:none; border-radius:11px; background:var(--navy); color:#fff;
+    font-size:16px; font-weight:800; letter-spacing:.3px; cursor:pointer;
+  }
+  .dl:active{background:var(--navy2);}
+  .hint{font-size:11.5px; color:var(--mut); margin:8px 2px 0; line-height:1.45;}
+  .preset-label{color:var(--blue); font-weight:800;}
+</style>
+</head>
+<body>
+<header>
+  <svg width="34" height="34" viewBox="0 0 34 34"><rect width="34" height="34" rx="8" fill="#fff" opacity=".12"/><polyline points="5,20 10,20 13,11 17,25 20,17 22,20 29,20" fill="none" stroke="#7FB3E0" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"/><text x="17" y="31" text-anchor="middle" font-size="7" font-weight="800" fill="#fff" font-family="Helvetica">VS</text></svg>
+  <div>
+    <h1>Generador de Tarjetas VitalSupply</h1>
+    <p>Foto real + datos → PNG 1080×1080 listo para Facebook</p>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <div class="card">
+    <label>1 · Producto (autollenar)</label>
+    <select id="preset">
+      <option value="">— Elegir producto del pedido —</option>
+    </select>
+
+    <label>2 · Foto real del producto (de tu catálogo, nunca IA)</label>
+    <button class="photo-btn" id="photoBtn" onclick="document.getElementById('file').click()">📷 Subir foto del producto</button>
+    <input type="file" id="file" accept="image/*">
+
+    <label>Palabra chica / Palabra grande</label>
+    <div class="row">
+      <div><input type="text" id="wSmall" placeholder="CABLE" maxlength="14"></div>
+      <div><input type="text" id="wBig" placeholder="EKG" maxlength="10"></div>
+    </div>
+
+    <label>Subtítulo</label>
+    <input type="text" id="subtitle" placeholder="Compatible con múltiples marcas y modelos" maxlength="60">
+
+    <label>3 características (título · detalle)</label>
+    <div class="specrow"><input type="text" id="s1t" placeholder="Compatible" maxlength="16"><input type="text" id="s1d" placeholder="con múltiples marcas" maxlength="26"></div>
+    <div class="specrow"><input type="text" id="s2t" placeholder="Conector DB-15" maxlength="16"><input type="text" id="s2d" placeholder="con tornillos" maxlength="26"></div>
+    <div class="specrow"><input type="text" id="s3t" placeholder="Cubierta TPU" maxlength="16"><input type="text" id="s3d" placeholder="resistente" maxlength="26"></div>
+
+    <label>Nombre del producto (bajo la foto)</label>
+    <input type="text" id="prodName" placeholder="Cable EKG 10 Puntas Compatible Varias Marcas" maxlength="70">
+
+    <label>Precio (MXN)</label>
+    <input type="text" id="price" placeholder="1,299" inputmode="numeric">
+
+    <label>3 mini-datos del pie (título · dato)</label>
+    <div class="specrow"><input type="text" id="m1t" placeholder="LONGITUD" maxlength="14"><input type="text" id="m1d" placeholder="3.6 m" maxlength="14"></div>
+    <div class="specrow"><input type="text" id="m2t" placeholder="CODIFICACIÓN" maxlength="14"><input type="text" id="m2d" placeholder="10 leads" maxlength="14"></div>
+    <div class="specrow"><input type="text" id="m3t" placeholder="CALIDAD" maxlength="14"><input type="text" id="m3d" placeholder="equivalente OEM" maxlength="16"></div>
+  </div>
+
+  <div class="preview-box">
+    <canvas id="canvas" width="1080" height="1080"></canvas>
+  </div>
+
+  <button class="dl" id="dl">⬇︎ Descargar PNG (1080×1080)</button>
+  <p class="hint">En iPhone: al tocar descargar se abre la imagen o se guarda en Archivos → desde ahí “Guardar en Fotos”. Usa siempre <b>fotos reales</b> de tu storage de Supabase. El WhatsApp y la web van integrados en la franja azul inferior.</p>
+
+</div>
+
+<script>
+const PRESETS = [
+ {id:"SK1113B", label:"1 · Cable EKG Philips M2461A — $1,299", wSmall:"CABLE", wBig:"EKG", subtitle:"Compatible Philips M2461A · 10 latiguillos",
+  s:[["Compatible","Philips PageWriter"],["Conector 15 pines","banana 4.0mm AHA"],["10 latiguillos","codificados por color"]],
+  prodName:"Cable EKG 10 Puntas Compatible Philips M2461A", price:"1,299",
+  m:[["PUNTAS","10 leads"],["ESTÁNDAR","AHA banana"],["CONDICIÓN","nuevo"]]},
+ {id:"SC1711", label:"2 · Brazalete NIBP adulto — $339", wSmall:"BRAZALETE", wBig:"NIBP", subtitle:"Adulto 25–35 cm · un tubo · reutilizable",
+  s:[["Reutilizable","lavable, larga vida"],["Un tubo","fácil conexión"],["Adulto","brazo 25–35 cm"]],
+  prodName:"Brazalete NIBP Adulto Un Tubo Reutilizable", price:"339",
+  m:[["MEDIDA","25–35 cm"],["TIPO","1 tubo"],["CONDICIÓN","nuevo"]]},
+ {id:"SCB11", label:"3 · Conectores NIBP 330059 pack 5 — $429", wSmall:"CONECTOR", wBig:"NIBP", subtitle:"Referencia 330059 · pack de 5 piezas",
+  s:[["Pack 5 piezas","alta rotación"],["Metálico","referencia 330059"],["Mayoreo","pregunta por volumen"]],
+  prodName:"Conectores NIBP 330059 · Pack 5 Piezas", price:"429",
+  m:[["PACK","5 piezas"],["REF","330059"],["CONDICIÓN","nuevo"]]},
+ {id:"ST1307", label:"4 · Sonda temp YSI 400 piel — $999", wSmall:"SONDA", wBig:"TEMP", subtitle:"Serie YSI 400 · adulto · aplicación en piel",
+  s:[["YSI 400","estándar universal"],["Piel adulto","reutilizable"],["Multi-marca","Mindray, GE y más"]],
+  prodName:"Sonda de Temperatura YSI 400 Adulto Piel", price:"999",
+  m:[["SERIE","YSI 400"],["USO","piel adulto"],["CONDICIÓN","nueva"]]},
+ {id:"SH1010S", label:"5 · Manguera NIBP Mindray 706 — $999", wSmall:"MANGUERA", wBig:"NIBP", subtitle:"Compatible Mindray Datascope 706",
+  s:[["Compatible","Mindray / Datascope"],["Referencia 706","conexión directa"],["Resistente","uso continuo"]],
+  prodName:"Manguera NIBP Compatible Mindray Datascope 706", price:"999",
+  m:[["REF","706"],["MARCA","Mindray"],["CONDICIÓN","nueva"]]},
+ {id:"SP9119A", label:"6 · Sensor SpO₂ Nellcor DS-100A — $949", wSmall:"SENSOR", wBig:"SpO₂", subtitle:"Compatible Covidien / Nellcor DS-100A",
+  s:[["Clip adulto","reutilizable"],["Compatible","Nellcor DS-100A"],["Conector DB9","tecnología Nellcor"]],
+  prodName:"Sensor SpO₂ Clip Adulto Compatible Nellcor DS-100A", price:"949",
+  m:[["TIPO","clip adulto"],["CONECTOR","DB9"],["CONDICIÓN","nuevo"]]},
+ {id:"SCB36", label:"7 · Conectores NIBP 300664 pack 5 — $429", wSmall:"CONECTOR", wBig:"NIBP", subtitle:"Referencia 300664 · pack de 5 piezas",
+  s:[["Pack 5 piezas","alta rotación"],["Referencia","300664"],["Mayoreo","pregunta por volumen"]],
+  prodName:"Conectores NIBP 300664 · Pack 5 Piezas", price:"429",
+  m:[["PACK","5 piezas"],["REF","300664"],["CONDICIÓN","nuevo"]]},
+ {id:"SP9318E", label:"8 · Sensor SpO₂ Mindray 6 pines — $999", wSmall:"SENSOR", wBig:"SpO₂", subtitle:"Compatible Mindray · 6 pines · 40°",
+  s:[["Clip adulto","reutilizable"],["6 pines 40°","2 ranuras"],["Compatible","Mindray PM / iPM"]],
+  prodName:"Sensor SpO₂ Clip Adulto Compatible Mindray 6 Pines", price:"999",
+  m:[["PINES","6 · 40°"],["MARCA","Mindray"],["CONDICIÓN","nuevo"]]},
+ {id:"SG5141S", label:"9 · Cable ECG AAMI 5 latiguillos — $1,099", wSmall:"CABLE", wBig:"ECG", subtitle:"5 latiguillos snap · AHA · conector AAMI",
+  s:[["5 latiguillos","tipo snap (broche)"],["Estándar AAMI","6 pines redondo"],["Multi-marca","codificación AHA"]],
+  prodName:"Cable ECG 5 Latiguillos Snap AHA · Conector AAMI", price:"1,099",
+  m:[["LEADS","5 snap"],["ESTÁNDAR","AAMI · AHA"],["CONDICIÓN","nuevo"]]},
+ {id:"SP9325A", label:"10 · Sensor SpO₂ Philips direct-connect — $1,299", wSmall:"SENSOR", wBig:"SpO₂", subtitle:"Philips conexión directa · clip adulto · 3 m",
+  s:[["Conexión directa","sin cable adaptador"],["Clip adulto","cable de 3 metros"],["Compatible","Philips IntelliVue"]],
+  prodName:"Sensor SpO₂ Philips Direct-Connect Clip Adulto 3M", price:"1,299",
+  m:[["CABLE","3 metros"],["MARCA","Philips"],["CONDICIÓN","nuevo"]]},
+];
+
+const $ = id => document.getElementById(id);
+const sel = $('preset');
+PRESETS.forEach((p,i)=>{const o=document.createElement('option');o.value=i;o.textContent=p.label;sel.appendChild(o);});
+
+let img = null;
+
+sel.addEventListener('change', ()=>{
+  if(sel.value==="") return;
+  const p = PRESETS[+sel.value];
+  $('wSmall').value=p.wSmall; $('wBig').value=p.wBig; $('subtitle').value=p.subtitle;
+  $('s1t').value=p.s[0][0]; $('s1d').value=p.s[0][1];
+  $('s2t').value=p.s[1][0]; $('s2d').value=p.s[1][1];
+  $('s3t').value=p.s[2][0]; $('s3d').value=p.s[2][1];
+  $('prodName').value=p.prodName; $('price').value=p.price;
+  $('m1t').value=p.m[0][0]; $('m1d').value=p.m[0][1];
+  $('m2t').value=p.m[1][0]; $('m2d').value=p.m[1][1];
+  $('m3t').value=p.m[2][0]; $('m3d').value=p.m[2][1];
+  draw();
+});
+
+$('file').addEventListener('change', e=>{
+  const f=e.target.files[0]; if(!f) return;
+  const r=new FileReader();
+  r.onload=ev=>{ const im=new Image(); im.onload=()=>{img=im; $('photoBtn').textContent='✓ Foto cargada — tocar para cambiar'; $('photoBtn').classList.add('loaded'); draw();}; im.src=ev.target.result; };
+  r.readAsDataURL(f);
+});
+
+['wSmall','wBig','subtitle','s1t','s1d','s2t','s2d','s3t','s3d','prodName','price','m1t','m1d','m2t','m2d','m3t','m3d']
+ .forEach(id=>$(id).addEventListener('input', draw));
+
+const cv=$('canvas'), ctx=cv.getContext('2d');
+const NAVY='#152647', NAVY2='#1E3A6E', BLUE='#3B82C4', BLUE_SOFT='#7FB3E0', GRAY_BAND='#EEF1F5', MUT='#5A6478';
+const F='-apple-system,"Helvetica Neue",Helvetica,Arial,sans-serif';
+
+function pulse(ctx,x,y,w,color,lw){
+  // línea de pulso ECG: plano - pico - plano
+  const u=w/10;
+  ctx.beginPath();
+  ctx.moveTo(x,y);
+  ctx.lineTo(x+3*u,y);
+  ctx.lineTo(x+3.8*u,y-w*0.16);
+  ctx.lineTo(x+4.9*u,y+w*0.22);
+  ctx.lineTo(x+5.8*u,y-w*0.08);
+  ctx.lineTo(x+6.4*u,y);
+  ctx.lineTo(x+10*u,y);
+  ctx.strokeStyle=color; ctx.lineWidth=lw; ctx.lineJoin='round'; ctx.lineCap='round';
+  ctx.stroke();
+}
+
+function roundRect(c,x,y,w,h,r){
+  c.beginPath();
+  c.moveTo(x+r,y); c.arcTo(x+w,y,x+w,y+h,r); c.arcTo(x+w,y+h,x,y+h,r);
+  c.arcTo(x,y+h,x,y,r); c.arcTo(x,y,x+w,y,r); c.closePath();
+}
+
+function fitText(c,text,maxW,px,weight){
+  let size=px;
+  c.font=`${weight} ${size}px ${F}`;
+  while(c.measureText(text).width>maxW && size>18){ size-=2; c.font=`${weight} ${size}px ${F}`; }
+  return size;
+}
+
+function draw(){
+  const W=1080,H=1080;
+  // fondo
+  ctx.fillStyle='#FFFFFF'; ctx.fillRect(0,0,W,H);
+  const g=ctx.createRadialGradient(720,380,80,720,380,560);
+  g.addColorStop(0,'#F7FAFD'); g.addColorStop(1,'#FFFFFF');
+  ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
+
+  // ===== logo VitalSupply arriba derecha =====
+  ctx.textAlign='right';
+  ctx.fillStyle=NAVY; ctx.font=`800 34px ${F}`;
+  ctx.fillText('VITALSUPPLY', W-64, 96);
+  ctx.fillStyle=MUT; ctx.font=`500 17px ${F}`; 
+  ctx.fillText('ACCESORIOS MÉDICOS COMPATIBLES', W-64, 124);
+  pulse(ctx, W-330, 62, 264, BLUE, 4);
+
+  // ===== bloque de título izquierda =====
+  ctx.textAlign='left';
+  const wS=$('wSmall').value||'PRODUCTO';
+  const wB=$('wBig').value||'—';
+  ctx.fillStyle=NAVY; ctx.font=`700 58px ${F}`;
+  ctx.fillText(wS.toUpperCase(), 64, 210);
+  const bigSize=fitText(ctx, wB.toUpperCase(), 400, 148, '900');
+  ctx.font=`900 ${bigSize}px ${F}`;
+  ctx.fillText(wB.toUpperCase(), 60, 210+bigSize*0.92);
+
+  // subtítulo
+  const sub=$('subtitle').value||'';
+  ctx.fillStyle=MUT;
+  const subSize=fitText(ctx, sub, 400, 27, '500');
+  ctx.font=`500 ${subSize}px ${F}`;
+  ctx.fillText(sub, 64, 420);
+
+  // pulso divisor
+  pulse(ctx, 64, 470, 340, NAVY, 4);
+
+  // ===== 3 specs con círculo =====
+  const specs=[[$('s1t').value,$('s1d').value],[$('s2t').value,$('s2d').value],[$('s3t').value,$('s3d').value]];
+  let sy=560;
+  specs.forEach((s,i)=>{
+    if(!s[0]&&!s[1]) return;
+    // círculo
+    ctx.beginPath(); ctx.arc(100,sy,34,0,7); ctx.strokeStyle=NAVY; ctx.lineWidth=3; ctx.stroke();
+    pulse(ctx, 76, sy, 48, BLUE, 3);
+    ctx.fillStyle=NAVY; ctx.font=`800 27px ${F}`;
+    ctx.fillText(s[0], 156, sy-2);
+    ctx.fillStyle=MUT; ctx.font=`500 22px ${F}`;
+    ctx.fillText(s[1], 156, sy+28);
+    if(i<2){ ctx.strokeStyle='#E3E8F0'; ctx.lineWidth=1.5; ctx.beginPath(); ctx.moveTo(64,sy+58); ctx.lineTo(430,sy+58); ctx.stroke(); }
+    sy+=118;
+  });
+
+  // ===== foto producto =====
+  const px=470, py=200, pw=560, ph=430;
+  if(img){
+    const r=Math.min(pw/img.width, ph/img.height);
+    const dw=img.width*r, dh=img.height*r;
+    ctx.save();
+    roundRect(ctx, px, py, pw, ph, 18); ctx.clip();
+    ctx.fillStyle='#FFFFFF'; ctx.fillRect(px,py,pw,ph);
+    ctx.drawImage(img, px+(pw-dw)/2, py+(ph-dh)/2, dw, dh);
+    ctx.restore();
+  } else {
+    roundRect(ctx, px, py, pw, ph, 18);
+    ctx.fillStyle='#F0F3F8'; ctx.fill();
+    ctx.fillStyle=MUT; ctx.font=`600 26px ${F}`; ctx.textAlign='center';
+    ctx.fillText('📷 Sube la foto real del producto', px+pw/2, py+ph/2);
+    ctx.textAlign='left';
+  }
+
+  // nombre producto bajo foto
+  const pn=$('prodName').value||'';
+  ctx.textAlign='center'; ctx.fillStyle=NAVY;
+  const pnSize=fitText(ctx, pn, 560, 30, '800');
+  ctx.font=`800 ${pnSize}px ${F}`;
+  ctx.fillText(pn, px+pw/2, py+ph+52);
+
+  // badge de precio
+  const price=$('price').value||'—';
+  const bw=430, bh=132, bx=px+(pw-bw)/2, by=py+ph+84;
+  roundRect(ctx,bx,by,bw,bh,20); ctx.fillStyle=NAVY; ctx.fill();
+  ctx.fillStyle='#AFC6E8'; ctx.font=`700 24px ${F}`;
+  ctx.fillText('PRECIO DE LANZAMIENTO', bx+bw/2, by+42);
+  ctx.fillStyle='#FFFFFF'; ctx.font=`900 62px ${F}`;
+  ctx.fillText('$'+price, bx+bw/2, by+104);
+  ctx.font=`700 24px ${F}`; ctx.fillStyle='#AFC6E8';
+  ctx.fillText('MXN', bx+bw/2+ctx.measureText('$'+price).width/2+150 > bx+bw ? bx+bw-46 : bx+bw-52, by+104);
+
+  // ===== franja gris de mini-specs =====
+  const gy=908;
+  ctx.fillStyle=GRAY_BAND; ctx.fillRect(0,gy,W,96);
+  const minis=[[$('m1t').value,$('m1d').value],[$('m2t').value,$('m2d').value],[$('m3t').value,$('m3d').value]];
+  const cols=[W/6, W/2, W*5/6];
+  minis.forEach((m,i)=>{
+    ctx.fillStyle=NAVY; ctx.font=`800 22px ${F}`;
+    ctx.fillText((m[0]||'').toUpperCase(), cols[i], gy+42);
+    ctx.fillStyle=MUT; ctx.font=`500 22px ${F}`;
+    ctx.fillText(m[1]||'', cols[i], gy+72);
+    if(i<2){ ctx.strokeStyle='#D5DCE7'; ctx.beginPath(); ctx.moveTo(cols[i]+W/6,gy+22); ctx.lineTo(cols[i]+W/6,gy+74); ctx.stroke(); }
+  });
+
+  // ===== franja navy inferior =====
+  ctx.fillStyle=NAVY; ctx.fillRect(0,gy+96,W,H-(gy+96));
+  ctx.fillStyle='#FFFFFF'; ctx.font=`700 26px ${F}`;
+  ctx.fillText('COMPATIBILIDAD CONFIRMADA · ENVÍOS A TODO MÉXICO', W/2, gy+96+34+8);
+  ctx.fillStyle=BLUE_SOFT; ctx.font=`600 23px ${F}`;
+  ctx.fillText('WhatsApp +52 871 782 1161  ·  vitalsupply.site', W/2, gy+96+70+4);
+  ctx.textAlign='left';
+}
+
+$('dl').addEventListener('click', ()=>{
+  cv.toBlob(b=>{
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(b);
+    const pn=($('wBig').value||'producto').toLowerCase().replace(/[^a-z0-9]/g,'');
+    a.download=`vitalsupply_${pn}_1080.png`;
+    a.click();
+  },'image/png');
+});
+
+draw();
+</script>
+</body>
+</html>
