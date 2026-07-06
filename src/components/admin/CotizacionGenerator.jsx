@@ -13,10 +13,12 @@ import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 import { supabase } from "../../api/supabase";
 
-const TABLA = "productos_medicos_v2";
+const TABLA = "productos_medicos_v2";           // catalogo completo -> cotizaciones a CLIENTE (precio de venta)
+const VISTA_PROVEEDOR = "v_cotizacion_proveedor"; // costos reales de proforma -> ordenes de compra a Sino-K
 const COL = {
   pk: "mi_sku", sku_sinok: "sku_sinok", competencia: "sku_competencia",
   nombre: "nombre", precio: "precio", precio_sinok: "precio_sinok", imagen: "imagen_url",
+  costo_proforma: "costo_proforma", costo_confirmado: "costo_confirmado",
 };
 const COLS_BUSQUEDA = [COL.pk, COL.nombre, COL.competencia, COL.sku_sinok];
 
@@ -47,6 +49,8 @@ const T = {
     total: "TOTAL", validez: "Validez de la oferta", notas: "Notas:", condiciones: "Condiciones:",
     condCliente: (m) => `Precios en ${m}. Productos compatibles / refacciones. Tiempo de entrega 10-15 dias habiles.\nPago: transferencia / PayPal / tarjeta. Cotizacion sujeta a disponibilidad.`,
     condPedido: "100% pago por adelantado. Envio por FedEx.",
+    rfq: "SOLICITUD DE COTIZACION",
+    condRFQ: "Favor de cotizar sus mejores precios de distribuidor + envio FedEx a Torreon, Mexico (CP 27294).",
   },
   en: {
     cot: "QUOTATION", oc: "PURCHASE ORDER", folio: "Quote No", fecha: "Date",
@@ -57,6 +61,8 @@ const T = {
     total: "TOTAL", validez: "Offer validity", notas: "Notes:", condiciones: "Terms:",
     condCliente: (m) => `Prices in ${m}. Compatible / replacement accessories. Lead time 10-15 business days.\nPayment: wire transfer / PayPal / card. Quotation subject to availability.`,
     condPedido: "100% payment in advance. Delivery by FedEx.",
+    rfq: "REQUEST FOR QUOTATION",
+    condRFQ: "Please quote your best distributor prices + FedEx shipping to Torreon, Mexico (ZIP 27294).",
   },
 };
 
@@ -130,7 +136,8 @@ async function construirPDF(cot) {
   doc.text("VitalSupply", textX, y + 6);
 
   doc.setFont("helvetica", "bold"); doc.setFontSize(16); doc.setTextColor(...AZUL);
-  doc.text(cot.tipo === "pedido" ? t.oc : t.cot, W - M, y, { align: "right" });
+  const titulo = cot.tipo === "pedido" ? (cot.sin_precios ? t.rfq : t.oc) : t.cot;
+  doc.text(titulo, W - M, y, { align: "right" });
   doc.setFont("helvetica", "normal"); doc.setFontSize(9); doc.setTextColor(...GRIS);
   doc.text(`${t.folio}: ${cot.folio || "-"}`, W - M, y + 16, { align: "right" });
   doc.text(`${t.fecha}: ${cot.fecha || hoy()}`, W - M, y + 29, { align: "right" });
@@ -147,14 +154,21 @@ async function construirPDF(cot) {
   y += 86;
 
   const refHead = cot.tipo === "pedido" ? "Sino-K P/N" : "SKU";
-  const head = [["#", t.img, refHead, t.desc, t.cant, t.punit(moneda), cot.tipo === "pedido" ? t.totalCol : t.importe]];
+  const rfq = !!cot.sin_precios; // solicitud de cotizacion: sin columnas de precio
+  const nCols = rfq ? 5 : 7;
+  const head = rfq
+    ? [["#", t.img, refHead, t.desc, t.cant]]
+    : [["#", t.img, refHead, t.desc, t.cant, t.punit(moneda), cot.tipo === "pedido" ? t.totalCol : t.importe]];
   const body = [], rowImgs = []; let n = 0;
   agrupar(cot.items).forEach(({ grupo, lista }) => {
-    if (grupo) { body.push([{ content: grupo, colSpan: 7, styles: { fontStyle: "bold", fillColor: AZUL_CLARO, textColor: AZUL } }]); rowImgs.push(null); }
+    if (grupo) { body.push([{ content: grupo, colSpan: nCols, styles: { fontStyle: "bold", fillColor: AZUL_CLARO, textColor: AZUL } }]); rowImgs.push(null); }
     lista.forEach((it) => {
       const idx = (cot.items || []).indexOf(it);
       const imp = (Number(it.qty) || 0) * (Number(it.precio) || 0);
-      body.push([String(++n), "", cot.tipo === "pedido" ? (it.sinok || "-") : (it.sku || "-"), it.nombre, String(it.qty), fmt(it.precio, moneda), fmt(imp, moneda)]);
+      const ref = cot.tipo === "pedido" ? (it.sinok || "-") : (it.sku || "-");
+      body.push(rfq
+        ? [String(++n), "", ref, it.nombre, String(it.qty)]
+        : [String(++n), "", ref, it.nombre, String(it.qty), fmt(it.precio, moneda), fmt(imp, moneda)]);
       rowImgs.push(imgs[idx] || null);
     });
   });
@@ -163,11 +177,16 @@ async function construirPDF(cot) {
     head, body, startY: y, margin: { left: M, right: M },
     styles: { fontSize: 8.5, cellPadding: 4, valign: "middle", minCellHeight: 62 },
     headStyles: { fillColor: AZUL, textColor: 255, fontStyle: "bold" },
-    columnStyles: {
-      0: { cellWidth: 22, halign: "center" }, 1: { cellWidth: 70, halign: "center" },
-      2: { cellWidth: 70 }, 4: { cellWidth: 32, halign: "center" },
-      5: { cellWidth: 70, halign: "right" }, 6: { cellWidth: 70, halign: "right" },
-    },
+    columnStyles: rfq
+      ? {
+          0: { cellWidth: 24, halign: "center" }, 1: { cellWidth: 80, halign: "center" },
+          2: { cellWidth: 90 }, 4: { cellWidth: 50, halign: "center" },
+        }
+      : {
+          0: { cellWidth: 22, halign: "center" }, 1: { cellWidth: 70, halign: "center" },
+          2: { cellWidth: 70 }, 4: { cellWidth: 32, halign: "center" },
+          5: { cellWidth: 70, halign: "right" }, 6: { cellWidth: 70, halign: "right" },
+        },
     theme: "grid",
     didDrawCell: (data) => {
       if (data.section === "body" && data.column.index === 1) {
@@ -188,7 +207,9 @@ async function construirPDF(cot) {
     doc.setFont("helvetica", "normal"); doc.setFontSize(9.5); doc.setTextColor(40, 40, 40);
     doc.text(lab, xL, yt); doc.text(val, xV, yt, { align: "right" }); yt += 15;
   };
-  if (cot.tipo === "pedido") {
+  if (rfq) {
+    // solicitud de cotizacion: no se muestran totales
+  } else if (cot.tipo === "pedido") {
     linea(t.subtotal, fmt(subtotal, moneda));
     if (Number(cot.envio) > 0) linea(t.shipping, fmt(cot.envio, moneda));
     if (Number(cot.cargo_banco) > 0) linea(t.bank, fmt(cot.cargo_banco, moneda));
@@ -198,19 +219,22 @@ async function construirPDF(cot) {
     if (Number(cot.iva_pct) > 0) linea(`${t.iva} (${cot.iva_pct}%)`, fmt(iva, moneda));
     if (Number(cot.envio) > 0) linea(t.envio, fmt(cot.envio, moneda));
   }
-  // regla separadora + total (sin encimar texto)
-  yt += 6;
-  doc.setDrawColor(...AZUL); doc.setLineWidth(1); doc.line(xL, yt, xV, yt);
-  yt += 18;
-  doc.setFont("helvetica", "bold"); doc.setFontSize(12); doc.setTextColor(...AZUL);
-  doc.text(`${t.total} ${moneda}`, xL, yt);
-  doc.text(fmt(total, moneda), xV, yt, { align: "right" });
-
-  yt += 22;
+  if (!rfq) {
+    // regla separadora + total (sin encimar texto)
+    yt += 6;
+    doc.setDrawColor(...AZUL); doc.setLineWidth(1); doc.line(xL, yt, xV, yt);
+    yt += 18;
+    doc.setFont("helvetica", "bold"); doc.setFontSize(12); doc.setTextColor(...AZUL);
+    doc.text(`${t.total} ${moneda}`, xL, yt);
+    doc.text(fmt(total, moneda), xV, yt, { align: "right" });
+    yt += 22;
+  } else {
+    yt += 4;
+  }
   doc.setFont("helvetica", "bold"); doc.setFontSize(9); doc.setTextColor(...AZUL);
   doc.text(cot.tipo === "pedido" ? t.notas : t.condiciones, M, yt);
   doc.setFont("helvetica", "normal"); doc.setFontSize(8.5); doc.setTextColor(...GRIS);
-  const cond = cot.notas || (cot.tipo === "cliente" ? t.condCliente(moneda) : t.condPedido);
+  const cond = cot.notas || (rfq ? t.condRFQ : cot.tipo === "cliente" ? t.condCliente(moneda) : t.condPedido);
   doc.text(doc.splitTextToSize(cond, W - 2 * M), M, yt + 13);
 
   doc.setFontSize(7.5); doc.setTextColor(...GRIS);
@@ -231,6 +255,7 @@ export default function CotizacionGenerator() {
   const [notas, setNotas] = useState("");
 
   const [items, setItems] = useState([]);
+  const [sinPrecios, setSinPrecios] = useState(false); // pedido: solicitud de cotizacion (RFQ) sin precios
   const [descPct, setDescPct] = useState(0);
   const [ivaOn, setIvaOn] = useState(false);
   const [envio, setEnvio] = useState(0);
@@ -261,17 +286,23 @@ export default function CotizacionGenerator() {
       setBuscando(true); setError("");
       try {
         const orFilter = COLS_BUSQUEDA.map((c) => `${c}.ilike.%${q.trim()}%`).join(",");
-        const { data, error } = await supabase.from(TABLA).select("*").or(orFilter).limit(15);
+        // PEDIDO -> vista con costos reales de proforma (nunca expone precio de venta)
+        // CLIENTE -> catalogo completo con precio de venta
+        const fuente = tipo === "pedido" ? VISTA_PROVEEDOR : TABLA;
+        const { data, error } = await supabase.from(fuente).select("*").or(orFilter).limit(15);
         if (error) throw error; setRes(data || []);
       } catch (e) { setError("Error en busqueda: " + (e.message || e)); setRes([]); }
       finally { setBuscando(false); }
     }, 300);
     return () => clearTimeout(tRef.current);
-  }, [q]);
+  }, [q, tipo]);
 
   const agregar = (p) => {
-    const baseUSD = tipo === "pedido" ? p[COL.precio_sinok] : p[COL.precio];
-    setItems((prev) => [...prev, { key: crypto.randomUUID(), grupo: "", sinok: p[COL.sku_sinok] || "", sku: p[COL.pk] || "", nombre: p[COL.nombre] || "(sin nombre)", imagen: p[COL.imagen] || "", qty: 1, precio: Number(baseUSD) || 0 }]);
+    // PEDIDO: costo real de proforma (si no esta confirmado queda 0 -> Emma cotiza).
+    // NUNCA usar precio de venta en documentos a proveedor.
+    const baseUSD = tipo === "pedido" ? p[COL.costo_proforma] : p[COL.precio];
+    const confirmado = tipo === "pedido" ? !!p[COL.costo_confirmado] : true;
+    setItems((prev) => [...prev, { key: crypto.randomUUID(), grupo: "", sinok: p[COL.sku_sinok] || "", sku: p[COL.pk] || "", nombre: p[COL.nombre] || "(sin nombre)", imagen: p[COL.imagen] || "", qty: 1, precio: Number(baseUSD) || 0, confirmado }]);
     setQ(""); setRes([]);
   };
   const upd = (key, c, v) => setItems((prev) => prev.map((it) => (it.key === key ? { ...it, [c]: v } : it)));
@@ -279,6 +310,7 @@ export default function CotizacionGenerator() {
 
   const cotActual = () => ({
     tipo, idioma, folio: folio || null, fecha, destinatario, atencion, validez, moneda,
+    sin_precios: tipo === "pedido" && sinPrecios,
     descuento_pct: tipo === "cliente" ? Number(descPct) || 0 : 0,
     iva_pct: tipo === "cliente" && ivaOn ? IVA_PCT : 0,
     envio: Number(envio) || 0,
@@ -297,7 +329,8 @@ export default function CotizacionGenerator() {
     const { subtotal, total } = totales(cot);
     let folioFinal = cot.folio;
     try {
-      const { data, error } = await supabase.from("cotizaciones").insert({ ...cot, subtotal, total }).select("folio").single();
+      const { sin_precios: _sp, ...cotDB } = cot; // columna no existe en la tabla; solo controla el PDF
+      const { data, error } = await supabase.from("cotizaciones").insert({ ...cotDB, subtotal, total }).select("folio").single();
       if (error) throw error;
       folioFinal = data.folio; setOk(`Guardada con folio ${folioFinal}`); cargarHistorial();
     } catch (e) {
@@ -343,7 +376,13 @@ export default function CotizacionGenerator() {
                   <b>{p[COL.pk]}</b>{p[COL.sku_sinok] ? ` · ${p[COL.sku_sinok]}` : ""}
                   <div style={S.small}>{p[COL.nombre]}</div>
                 </div>
-                <span style={S.precioOpt}>{tipo === "pedido" ? fmt(p[COL.precio_sinok], "USD") + " costo" : fmt(p[COL.precio], "USD")}</span>
+                <span style={S.precioOpt}>
+                  {tipo === "pedido"
+                    ? (p[COL.costo_confirmado]
+                        ? fmt(p[COL.costo_proforma], "USD") + " proforma ✓"
+                        : "sin costo confirmado")
+                    : fmt(p[COL.precio], "USD")}
+                </span>
               </div>
             ))}
           </div>
@@ -382,6 +421,15 @@ export default function CotizacionGenerator() {
         {tipo === "pedido" && (<>
           <Campo label="Shipping cost (USD)"><input style={S.in} type="number" value={envio} onChange={(e) => setEnvio(e.target.value)} /></Campo>
           <Campo label="Bank charge (USD)"><input style={S.in} type="number" value={cargoBanco} onChange={(e) => setCargoBanco(e.target.value)} /></Campo>
+          <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, fontWeight: 600, color: "#1e3a5f", margin: "10px 0" }}>
+            <input type="checkbox" checked={sinPrecios} onChange={(e) => setSinPrecios(e.target.checked)} />
+            Solicitud de cotizacion (RFQ) — generar PDF sin precios para que el proveedor cotice
+          </label>
+          {!sinPrecios && items.some((it) => it.confirmado === false) && (
+            <div style={{ background: "#fff7e6", border: "1px solid #f0c36d", borderRadius: 8, padding: "8px 12px", fontSize: 12.5, color: "#8a5a00", margin: "6px 0" }}>
+              ⚠️ Hay productos sin costo confirmado en proforma (aparecen en 0). Pide cotizacion a Sino-K antes de enviar esta orden, o activa el modo RFQ.
+            </div>
+          )}
         </>)}
       </div>
 
