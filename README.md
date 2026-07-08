@@ -57,3 +57,24 @@ Si más adelante quieres optimizar, podrías:
 - Crear una vista materializada en Supabase
 
 Pero para 3K productos es totalmente innecesario optimizar más.
+
+---
+
+# Filtros de Talla de paciente y Circunferencia de brazo (NIBP Cuffs)
+
+Los brazaletes NIBP (subcategorías **NIBP Cuffs** y **Disposable NIBP Cuffs**)
+tienen dos filtros extra en el panel *Filtrar por*: **Talla de paciente** y
+**Circunferencia de brazo**, que leen del campo `especificaciones`
+(keys `Patient Size` y `Hose Patient Size`) y se poblan/filtran del lado del
+servidor vía las RPCs de Supabase.
+
+## Evidencia en producción
+
+Capturas del filtro funcionando en el sitio desplegado (`vitalsupply.site`):
+
+- [NIBP Cuffs — Talla = "Large Adult" (85 → 9 productos)](docs/screenshots/nibp-cuffs-filter.png)
+- [Disposable NIBP Cuffs — Circunferencia = "25-35 cm" (2 productos)](docs/screenshots/disposable-nibp-cuffs-filter.png)
+
+![NIBP Cuffs filtrado por talla](docs/screenshots/nibp-cuffs-filter.png)
+
+![Disposable NIBP Cuffs filtrado por circunferencia](docs/screenshots/disposable-nibp-cuffs-filter.png)
