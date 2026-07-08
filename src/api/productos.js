@@ -30,6 +30,8 @@ async function _fetchProductos({ categoria = null, subcategoria = null, filtros 
     p_limite: limite,
     p_precio_min: filtros.precioMin != null ? Number(filtros.precioMin) : null,
     p_precio_max: filtros.precioMax != null ? Number(filtros.precioMax) : null,
+    p_patient_size: filtros.patientSize || null,
+    p_hose_patient_size: filtros.hoseSize || null,
   });
 
   if (error) {

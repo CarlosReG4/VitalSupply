@@ -14,7 +14,7 @@ export const useFiltrosCategoria = (
   { categoria = null, subcategoria = null } = {},
   filtrosActivos = {}
 ) => {
-  const [opciones, setOpciones] = useState({ manufacturers: [], models: [], oems: [] });
+  const [opciones, setOpciones] = useState({ manufacturers: [], models: [], oems: [], patientSizes: [], hoseSizes: [] });
   const [cargando, setCargando] = useState(true);
 
   // Estabilizamos la clave de los filtros para el useEffect
@@ -43,6 +43,8 @@ export const useFiltrosCategoria = (
             manufacturers: data.manufacturers || [],
             models: data.models || [],
             oems: data.oems || [],
+            patientSizes: data.patientSizes || [],
+            hoseSizes: data.hoseSizes || [],
           });
         }
       } catch (e) {
@@ -62,5 +64,7 @@ export const useFiltrosCategoria = (
     manufacturers: opciones.manufacturers,
     models: opciones.models,
     oems: opciones.oems,
+    patientSizes: opciones.patientSizes,
+    hoseSizes: opciones.hoseSizes,
   };
 };

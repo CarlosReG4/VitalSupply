@@ -12,7 +12,7 @@ export default function FiltroProductos({ categoria, subcategoria, filtros, onFi
   const { t } = useTranslation();
 
   // 👇 Pasamos los filtros activos para que el hook recalcule las opciones
-  const { cargando, manufacturers, models, oems } = useFiltrosCategoria(
+  const { cargando, manufacturers, models, oems, patientSizes, hoseSizes } = useFiltrosCategoria(
     { categoria, subcategoria },
     filtros
   );
@@ -20,6 +20,9 @@ export default function FiltroProductos({ categoria, subcategoria, filtros, onFi
   const manufacturer = filtros.manufacturer || '';
   const model = filtros.model || '';
   const oemPart = filtros.oemPart || '';
+
+  // Los filtros de talla/circunferencia solo aplican a la subcategoría NIBP Cuffs
+  const esCuffs = subcategoria === 'nibp_cuffs';
 
   const handleChange = (campo, valor) => {
     const nuevo = { ...filtros, [campo]: valor || undefined };
@@ -48,7 +51,7 @@ export default function FiltroProductos({ categoria, subcategoria, filtros, onFi
   };
 
   const limpiar = () => onFiltrosChange({});
-  const hayFiltrosActivos = manufacturer || model || oemPart || filtros.precioRango;
+  const hayFiltrosActivos = manufacturer || model || oemPart || filtros.precioRango || filtros.patientSize || filtros.hoseSize;
 
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-8">
@@ -139,6 +142,46 @@ export default function FiltroProductos({ categoria, subcategoria, filtros, onFi
             <option value="4">$200+</option>
           </select>
         </div>
+
+        {/* Patient Size — solo NIBP Cuffs (especificaciones → "Patient Size") */}
+        {esCuffs && (
+          <div className="relative">
+            <label className="block text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1">
+              {t('catalog.patientSize')}
+            </label>
+            <select
+              value={filtros.patientSize || ''}
+              onChange={(e) => handleChange('patientSize', e.target.value)}
+              disabled={cargando}
+              className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm text-gray-700 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 cursor-pointer disabled:opacity-50"
+            >
+              <option value="">{t('catalog.all')}</option>
+              {patientSizes.map((s) => (
+                <option key={s} value={s}>{s}</option>
+              ))}
+            </select>
+          </div>
+        )}
+
+        {/* Arm Circumference — solo NIBP Cuffs (especificaciones → "Hose Patient Size") */}
+        {esCuffs && (
+          <div className="relative">
+            <label className="block text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1">
+              {t('catalog.armCircumference')}
+            </label>
+            <select
+              value={filtros.hoseSize || ''}
+              onChange={(e) => handleChange('hoseSize', e.target.value)}
+              disabled={cargando}
+              className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm text-gray-700 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 cursor-pointer disabled:opacity-50"
+            >
+              <option value="">{t('catalog.all')}</option>
+              {hoseSizes.map((r) => (
+                <option key={r} value={r}>{r}</option>
+              ))}
+            </select>
+          </div>
+        )}
       </div>
 
       {cargando && (
