@@ -21,8 +21,8 @@ export default function FiltroProductos({ categoria, subcategoria, filtros, onFi
   const model = filtros.model || '';
   const oemPart = filtros.oemPart || '';
 
-  // Los filtros de talla/circunferencia solo aplican a la subcategoría NIBP Cuffs
-  const esCuffs = subcategoria === 'nibp_cuffs';
+  // Los filtros de talla/circunferencia solo aplican a las subcategorías de brazaletes NIBP
+  const esCuffs = subcategoria === 'nibp_cuffs' || subcategoria === 'nibp_disposable_cuffs';
 
   const handleChange = (campo, valor) => {
     const nuevo = { ...filtros, [campo]: valor || undefined };
