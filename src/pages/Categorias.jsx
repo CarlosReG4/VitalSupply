@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useCartStore } from '../store/cartStore';
 import { Link, useSearchParams } from 'react-router-dom';
 import { mainCategories } from '../utils/constants';
@@ -11,6 +12,7 @@ import FiltroProductos from '../components/categorias/FiltroProductos';
 import ErrorState from '../components/common/ErrorState';
 
 function Categorias() {
+  const { t } = useTranslation();
   const agregarAlCarrito = useCartStore((state) => state.agregarAlCarrito);
   const [searchParams] = useSearchParams();
   
@@ -64,14 +66,14 @@ function Categorias() {
           <div className="mb-8 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
             <div>
               <nav className="flex text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-2 gap-2">
-                <Link to="/" className="hover:text-blue-600">Home</Link>
+                <Link to="/" className="hover:text-blue-600">{t('nav.home')}</Link>
                 <span>/</span>
                 <span className="text-blue-900">{categoriaPrincipal}</span>
               </nav>
               <h2 className="text-4xl font-black text-gray-900 uppercase tracking-tighter">{categoriaPrincipal}</h2>
             </div>
             <p className="text-gray-400 font-bold text-sm bg-gray-100 px-4 py-2 rounded-full h-fit">
-              {totalProductos} Productos
+              {totalProductos} {t('catalog.products')}
             </p>
           </div>
 
@@ -86,7 +88,7 @@ function Categorias() {
           {cargando ? (
             <div className="flex justify-center items-center h-64 bg-white rounded-3xl border border-gray-100 shadow-sm flex-col gap-4">
               <i className="fas fa-spinner fa-spin text-4xl text-blue-600"></i>
-              <p className="text-xl text-gray-500 font-bold animate-pulse">Loading catalog...</p>
+              <p className="text-xl text-gray-500 font-bold animate-pulse">{t('categoriesPage.loadingCatalog')}</p>
             </div>
           ) : error ? (
             <ErrorState mensaje={error} reintentar={reintentar} />
@@ -95,8 +97,8 @@ function Categorias() {
               {(!productosPagina || productosPagina.length === 0) ? (
                 <div className="bg-white p-12 rounded-3xl border border-gray-100 text-center shadow-sm">
                   <i className="fas fa-box-open text-6xl text-gray-200 mb-4 block"></i>
-                  <h3 className="text-xl font-bold text-gray-800">No products match the filters</h3>
-                  <p className="text-sm text-gray-500 mt-2">Try adjusting or clearing the filters</p>
+                  <h3 className="text-xl font-bold text-gray-800">{t('categoriesPage.noResults')}</h3>
+                  <p className="text-sm text-gray-500 mt-2">{t('categoriesPage.tryAdjusting')}</p>
                 </div>
               ) : (
                 <>

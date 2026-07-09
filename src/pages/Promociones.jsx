@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { supabase } from '../api/supabase';
 import { useCartStore } from '../store/cartStore';
 
 function Promociones() {
+  const { t } = useTranslation();
   const [promosData, setPromosData] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -33,7 +35,7 @@ function Promociones() {
         ...producto,
         precio: producto.precio_promocion
       });
-      alert(`${producto.nombre} added to cart at promotional price!`);
+      alert(t('promosPage.addedToCart', { name: producto.nombre }));
     }
   };
 
@@ -44,9 +46,9 @@ function Promociones() {
       <div className="bg-blue-900 text-white py-12">
         <div className="container mx-auto px-4 text-center">
           <h1 className="text-4xl font-black uppercase tracking-tighter italic">
-            Offers & <span className="text-blue-400">Promotions</span>
+            {t('promosPage.bannerTitlePrefix')} <span className="text-blue-400">{t('promosPage.bannerTitleHighlight')}</span>
           </h1>
-          <p className="mt-2 text-blue-200">Exclusive discounts on medical supplies for a limited time.</p>
+          <p className="mt-2 text-blue-200">{t('promosPage.bannerSubtitle')}</p>
         </div>
       </div>
 
@@ -61,8 +63,8 @@ function Promociones() {
           ) : promosData.length === 0 ? (
             <div className="bg-white border border-gray-200 rounded-lg p-10 text-center max-w-2xl mx-auto">
               <i className="fas fa-tags text-4xl text-gray-300 mb-3"></i>
-              <h3 className="text-lg font-bold text-gray-600">No Active Promotions</h3>
-              <p className="text-gray-400 mt-2 text-sm">We currently have no offers. Check back soon for new discounts.</p>
+              <h3 className="text-lg font-bold text-gray-600">{t('promosPage.emptyTitle')}</h3>
+              <p className="text-gray-400 mt-2 text-sm">{t('promosPage.emptyBody')}</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
@@ -128,7 +130,7 @@ function Promociones() {
                       onClick={() => handleAgregarCarrito(promo)}
                       className="w-full bg-white border-2 border-blue-900 text-blue-900 py-2 text-xs font-bold uppercase tracking-widest hover:bg-blue-900 hover:text-white transition-colors"
                     >
-                      Add to Cart
+                      {t('promosPage.addToCart')}
                     </button>
                   </div>
                 );

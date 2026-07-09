@@ -1,10 +1,12 @@
 // src/components/subcategoria/SidebarFiltros.jsx
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link, useNavigate } from 'react-router-dom';
 import { mainCategories, MAPA_SUBCATEGORIAS } from '../../utils/constants';
 import { useSubcategoriasDisponibles } from '../../hooks/useSubcategoriasDisponibles';
 
 export default function SidebarFiltros({ infoCategoriaActual, subId }) {
+  const { t } = useTranslation();
   const navigate = useNavigate();
 
   const { subcategoriasConProductos } = useSubcategoriasDisponibles();
@@ -14,7 +16,7 @@ export default function SidebarFiltros({ infoCategoriaActual, subId }) {
     <aside className="w-full lg:w-1/4 h-fit">
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 flex flex-col">
         <div className="bg-blue-900 p-4 shrink-0 rounded-t-2xl">
-          <h3 className="text-white font-black text-xs uppercase tracking-[0.2em]">Catalog Navigation</h3>
+          <h3 className="text-white font-black text-xs uppercase tracking-[0.2em]">{t('catalog.navigation')}</h3>
         </div>
         
         <nav className="p-3">
@@ -46,7 +48,7 @@ export default function SidebarFiltros({ infoCategoriaActual, subId }) {
                         to={`/categorias?tipo=${cat.nombre}`}
                         className="w-full block text-left px-3 py-1.5 rounded-lg text-xs font-bold text-gray-400 hover:text-blue-600 hover:bg-blue-50/50 transition-colors"
                       >
-                        • View All {cat.nombre}
+                        • {t('catalog.viewAll')} {cat.nombre}
                       </Link>
                     </li>
                     

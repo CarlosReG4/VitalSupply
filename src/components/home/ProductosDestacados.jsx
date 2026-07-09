@@ -2,8 +2,10 @@ import { useState, useEffect } from 'react';
 import { useCartStore } from '../../store/cartStore';
 import { Link } from 'react-router-dom';
 import { supabase } from '../../api/supabase';
+import { useTranslation } from 'react-i18next';
 
 function ProductosDestacados() {
+  const { t } = useTranslation();
   const [prodActive, setProdActive] = useState(0);
   const agregarAlCarrito = useCartStore((state) => state.agregarAlCarrito);
   
@@ -56,7 +58,7 @@ function ProductosDestacados() {
   if (cargando) {
     return (
       <section className="py-16 bg-white overflow-hidden text-center">
-        <p className="text-gray-500 animate-pulse font-bold">Loading recommendations...</p>
+        <p className="text-gray-500 animate-pulse font-bold">{t('home.featured.loading')}</p>
       </section>
     );
   }
@@ -69,9 +71,9 @@ function ProductosDestacados() {
         {/* TÍTULO CAMBIADO AL INGLÉS */}
         <div className="text-center mb-10">
           <h2 className="text-2xl font-black uppercase tracking-tighter text-blue-900">
-            You Might Also Like
+            {t('home.featured.title')}
           </h2>
-          <p className="text-sm text-gray-500 mt-2">Essential consumables for your everyday clinical needs</p>
+          <p className="text-sm text-gray-500 mt-2">{t('home.featured.subtitle')}</p>
         </div>
         
         <div className="relative">
@@ -90,7 +92,7 @@ function ProductosDestacados() {
                       className="h-40 w-full object-contain mb-4 rounded transform group-hover:scale-105 transition-transform duration-300 mix-blend-multiply"
                     />
                     <h4 className="font-bold text-sm mb-1 uppercase group-hover:text-blue-600 transition-colors line-clamp-2">{producto.nombre}</h4>
-                    <p className="text-xs text-gray-400 mb-2 font-medium">SKU: <span className="text-gray-600">{producto.mi_sku}</span></p>
+                    <p className="text-xs text-gray-400 mb-2 font-medium">{t('home.featured.sku')} <span className="text-gray-600">{producto.mi_sku}</span></p>
                   </Link>
                   
                   {/* Se agregó un formateo condicional para el precio si no viene con signo de dólar */}
@@ -102,7 +104,7 @@ function ProductosDestacados() {
                     onClick={() => agregarAlCarrito(producto)}
                     className="w-full bg-blue-900 text-white py-3 rounded-lg text-xs font-bold uppercase tracking-widest hover:bg-orange-500 transition-colors shadow-md"
                   >
-                    Add to Cart
+                    {t('product.addToCart')}
                   </button>
                 </div>
               ))}
@@ -121,7 +123,7 @@ function ProductosDestacados() {
                       className="h-40 w-full object-contain mb-4 rounded transform group-hover:scale-105 transition-transform duration-300 mix-blend-multiply"
                     />
                     <h4 className="font-bold text-sm mb-1 uppercase group-hover:text-blue-600 transition-colors line-clamp-2">{producto.nombre}</h4>
-                    <p className="text-xs text-gray-400 mb-2 font-medium">SKU: <span className="text-gray-600">{producto.mi_sku}</span></p>
+                    <p className="text-xs text-gray-400 mb-2 font-medium">{t('home.featured.sku')} <span className="text-gray-600">{producto.mi_sku}</span></p>
                   </Link>
                   
                   <p className="text-blue-900 font-black text-lg mb-4 mt-auto">
@@ -132,7 +134,7 @@ function ProductosDestacados() {
                     onClick={() => agregarAlCarrito(producto)}
                     className="w-full bg-blue-900 text-white py-3 rounded-lg text-xs font-bold uppercase tracking-widest hover:bg-orange-500 transition-colors shadow-md"
                   >
-                    Add to Cart
+                    {t('product.addToCart')}
                   </button>
                 </div>
               ))}

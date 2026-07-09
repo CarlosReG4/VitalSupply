@@ -1,11 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 // Importamos el JSON que generaste
 import compatibilidadData from '../../data/compatibilidad.json';
 
 // --- SUB-COMPONENTE: Dropdown Personalizado con Buscador ---
 function CustomDropdown({ options, value, onChange, placeholder, disabled }) {
+  const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const wrapperRef = useRef(null);
@@ -49,7 +51,7 @@ function CustomDropdown({ options, value, onChange, placeholder, disabled }) {
             <input
               type="text"
               className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              placeholder="Search..."
+              placeholder={t('home.compatibility.searchPlaceholder')}
               value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
               autoFocus
@@ -73,7 +75,7 @@ function CustomDropdown({ options, value, onChange, placeholder, disabled }) {
                 </li>
               ))
             ) : (
-              <li className="px-4 py-3 text-sm text-slate-500 text-center">No results found</li>
+              <li className="px-4 py-3 text-sm text-slate-500 text-center">{t('home.compatibility.noResults')}</li>
             )}
           </ul>
         </div>
@@ -85,6 +87,7 @@ function CustomDropdown({ options, value, onChange, placeholder, disabled }) {
 
 
 export default function CompatibilityFinder() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
 
   const [brand, setBrand] = useState('');
@@ -103,10 +106,10 @@ export default function CompatibilityFinder() {
       <div className="max-w-7xl mx-auto">
         
         <div className="text-center mb-8">
-          <h2 className="text-blue-500 font-bold tracking-widest text-sm uppercase mb-2">Compatibility Finder</h2>
-          <p className="text-3xl font-bold text-slate-900">Find the Right Cable for Your Monitor</p>
+          <h2 className="text-blue-500 font-bold tracking-widest text-sm uppercase mb-2">{t('home.compatibility.eyebrow')}</h2>
+          <p className="text-3xl font-bold text-slate-900">{t('home.compatibility.title')}</p>
           <p className="text-slate-500 mt-3 max-w-2xl mx-auto">
-            Select your equipment details below to instantly view 100% compatible sensors, cuffs, and probes.
+            {t('home.compatibility.description')}
           </p>
         </div>
 
@@ -116,11 +119,11 @@ export default function CompatibilityFinder() {
               
               {/* Dropdown 1: Brand */}
               <div>
-                <label className="block text-sm font-bold text-slate-700 mb-2">1. Select Brand</label>
-                <CustomDropdown 
+                <label className="block text-sm font-bold text-slate-700 mb-2">{t('home.compatibility.selectBrandLabel')}</label>
+                <CustomDropdown
                   options={brands}
                   value={brand}
-                  placeholder="Choose a brand..."
+                  placeholder={t('home.compatibility.chooseBrandPlaceholder')}
                   onChange={(selectedValue) => {
                     setBrand(selectedValue);
                     setModel(''); // Limpiar el modelo si cambian la marca
@@ -131,11 +134,11 @@ export default function CompatibilityFinder() {
 
               {/* Dropdown 2: Model */}
               <div>
-                <label className="block text-sm font-bold text-slate-700 mb-2">2. Monitor Model</label>
-                <CustomDropdown 
+                <label className="block text-sm font-bold text-slate-700 mb-2">{t('home.compatibility.monitorModelLabel')}</label>
+                <CustomDropdown
                   options={modelosDisponibles}
                   value={model}
-                  placeholder={!brand ? "Select a brand first..." : "Choose model..."}
+                  placeholder={!brand ? t('home.compatibility.selectBrandFirstPlaceholder') : t('home.compatibility.chooseModelPlaceholder')}
                   onChange={(selectedValue) => setModel(selectedValue)}
                   disabled={!brand || modelosDisponibles.length === 0}
                 />
@@ -149,7 +152,7 @@ export default function CompatibilityFinder() {
                 className="bg-blue-600 hover:bg-blue-700 text-white px-12 py-4 rounded-xl font-bold text-lg transition-all shadow-lg shadow-blue-500/30 disabled:bg-slate-300 disabled:shadow-none disabled:cursor-not-allowed flex items-center gap-3"
               >
                 <i className="fas fa-search"></i>
-                Find Compatible Accessories
+                {t('home.compatibility.findButton')}
               </button>
             </div>
           </form>

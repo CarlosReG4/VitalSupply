@@ -1,10 +1,12 @@
 // src/components/categorias/SidebarCategorias.jsx
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link, useNavigate } from 'react-router-dom';
 import { mainCategories, MAPA_SUBCATEGORIAS } from '../../utils/constants';
 import { useSubcategoriasDisponibles } from '../../hooks/useSubcategoriasDisponibles';
 
 export default function SidebarCategorias({ categoriaPrincipal }) {
+  const { t } = useTranslation();
   const navigate = useNavigate();
 
   const { subcategoriasConProductos } = useSubcategoriasDisponibles();
@@ -17,7 +19,7 @@ export default function SidebarCategorias({ categoriaPrincipal }) {
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 flex flex-col">
         {/* Encabezado azul clásico */}
         <div className="bg-blue-900 p-4 shrink-0 rounded-t-2xl">
-          <h3 className="text-white font-black text-xs uppercase tracking-[0.2em]">Catalog Navigation</h3>
+          <h3 className="text-white font-black text-xs uppercase tracking-[0.2em]">{t('catalog.navigation')}</h3>
         </div>
         
         {/* Cuerpo de navegación */}
@@ -50,7 +52,7 @@ export default function SidebarCategorias({ categoriaPrincipal }) {
                         onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} 
                         className="w-full text-left px-3 py-1.5 rounded-lg text-xs font-bold text-blue-600 bg-blue-100/50 transition-colors"
                       >
-                        • Ver Todo {cat.nombre}
+                        • {t('catalog.viewAll')} {cat.nombre}
                       </button>
                     </li>
                     {subsDeEsteMenu.map(sub => (

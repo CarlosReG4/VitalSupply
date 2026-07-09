@@ -4,17 +4,10 @@
 // Ruta sugerida: /rastrear
 
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { supabase } from '../api/supabase';
 
 const ESTADOS_ORDEN = ['pagada', 'preparando', 'enviada', 'entregada'];
-const ETIQUETAS = {
-  pendiente: 'Pendiente de pago',
-  pagada: 'Pago confirmado',
-  preparando: 'Preparando envío',
-  enviada: 'Enviada',
-  entregada: 'Entregada',
-  cancelada: 'Cancelada',
-};
 
 const urlRastreo = (paqueteria, guia) => {
   if (!paqueteria || !guia) return null;
@@ -28,6 +21,7 @@ const urlRastreo = (paqueteria, guia) => {
 };
 
 export default function RastrearPage() {
+  const { t } = useTranslation();
   const [numero, setNumero] = useState('');
   const [email, setEmail] = useState('');
   const [orden, setOrden] = useState(null);
@@ -36,7 +30,7 @@ export default function RastrearPage() {
 
   const buscar = async () => {
     if (!numero.trim() || !email.trim()) {
-      setError('Ingresa tu número de orden y el correo con el que compraste.');
+      setError(t('trackPage.errorEmpty'));
       return;
     }
     setBuscando(true); setError(null); setOrden(null);
@@ -46,7 +40,7 @@ export default function RastrearPage() {
     });
     setBuscando(false);
     if (err || !data || data.error) {
-      setError('No encontramos un pedido con esos datos. Verifica el número (ej. VS-1025) y el correo.');
+      setError(t('trackPage.errorNotFound'));
       return;
     }
     setOrden(data);
@@ -61,21 +55,21 @@ export default function RastrearPage() {
       <div className="max-w-xl mx-auto">
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
           <h1 className="text-xl font-black text-gray-800 mb-1">
-            <i className="fas fa-truck mr-2 text-blue-600"></i>Rastrea tu pedido
+            <i className="fas fa-truck mr-2 text-blue-600"></i>{t('trackPage.title')}
           </h1>
           <p className="text-sm text-gray-400 mb-6">
-            Ingresa tu número de orden y el correo con el que compraste. No necesitas cuenta.
+            {t('trackPage.subtitle')}
           </p>
           <div className="grid md:grid-cols-2 gap-4 mb-4">
-            <input className={input} placeholder="Número de orden (ej. VS-1025)"
+            <input className={input} placeholder={t('trackPage.orderPlaceholder')}
               value={numero} onChange={(e) => setNumero(e.target.value)} />
-            <input className={input} type="email" placeholder="Correo de la compra"
+            <input className={input} type="email" placeholder={t('trackPage.emailPlaceholder')}
               value={email} onChange={(e) => setEmail(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && buscar()} />
           </div>
           <button onClick={buscar} disabled={buscando}
             className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg transition-colors disabled:opacity-50">
-            {buscando ? 'Buscando...' : 'Buscar pedido'}
+            {buscando ? t('trackPage.searching') : t('trackPage.searchBtn')}
           </button>
           {error && <p className="text-red-500 text-sm font-medium mt-4">{error}</p>}
         </div>
@@ -91,9 +85,9 @@ export default function RastrearPage() {
 
             {/* Línea de tiempo */}
             {orden.estado === 'cancelada' ? (
-              <p className="text-red-600 font-bold mb-6"><i className="fas fa-times-circle mr-2"></i>Pedido cancelado</p>
+              <p className="text-red-600 font-bold mb-6"><i className="fas fa-times-circle mr-2"></i>{t('trackPage.orderCanceled')}</p>
             ) : orden.estado === 'pendiente' ? (
-              <p className="text-yellow-600 font-bold mb-6"><i className="fas fa-clock mr-2"></i>Pendiente de pago</p>
+              <p className="text-yellow-600 font-bold mb-6"><i className="fas fa-clock mr-2"></i>{t('trackPage.status.pendiente')}</p>
             ) : (
               <div className="flex items-center mb-8">
                 {ESTADOS_ORDEN.map((e, i) => (
@@ -105,7 +99,7 @@ export default function RastrearPage() {
                       </div>
                       <span className={`text-[10px] mt-1 font-bold uppercase tracking-wide text-center w-20
                         ${i <= pasoActual ? 'text-blue-600' : 'text-gray-400'}`}>
-                        {ETIQUETAS[e]}
+                        {t(`trackPage.status.${e}`)}
                       </span>
                     </div>
                     {i < ESTADOS_ORDEN.length - 1 && (
@@ -124,19 +118,19 @@ export default function RastrearPage() {
             </ul>
 
             <div className="flex flex-wrap items-center justify-between gap-2 pt-4 border-t border-gray-50">
-              <span className="font-bold text-gray-800">Total: ${Number(orden.total_usd).toFixed(2)} USD</span>
+              <span className="font-bold text-gray-800">{t('cart.total')}: ${Number(orden.total_usd).toFixed(2)} USD</span>
               {orden.numero_guia ? (
                 <div className="text-sm">
-                  <span className="text-gray-500">{orden.paqueteria} · Guía <b>{orden.numero_guia}</b></span>
+                  <span className="text-gray-500">{orden.paqueteria} · {t('trackPage.guide')} <b>{orden.numero_guia}</b></span>
                   {linkPaqueteria && (
                     <a href={linkPaqueteria} target="_blank" rel="noreferrer"
                       className="ml-3 text-blue-600 font-bold hover:underline">
-                      Ver en paquetería <i className="fas fa-external-link-alt text-xs"></i>
+                      {t('trackPage.viewCarrier')} <i className="fas fa-external-link-alt text-xs"></i>
                     </a>
                   )}
                 </div>
               ) : (
-                <span className="text-sm text-gray-400">Guía de envío pendiente</span>
+                <span className="text-sm text-gray-400">{t('trackPage.guidePending')}</span>
               )}
             </div>
           </div>

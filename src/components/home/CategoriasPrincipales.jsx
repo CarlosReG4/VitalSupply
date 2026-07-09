@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 const categorias = [
   { nombre: 'SpO2', icon: 'fas fa-fingerprint' },
@@ -12,18 +13,19 @@ const categorias = [
 ];
 
 function CategoriasPrincipales() {
+  const { t } = useTranslation();
   return (
     <section className="py-20 bg-white">
       <div className="container mx-auto px-4 max-w-7xl">
         <div className="flex items-end justify-between mb-10">
           <div>
             <h2 className="text-2xl font-black uppercase tracking-tighter text-slate-900">
-              Browse Categories
+              {t('home.categories.title')}
             </h2>
-            <p className="text-sm text-slate-500 mt-1">Find the exact compatible part for your equipment.</p>
+            <p className="text-sm text-slate-500 mt-1">{t('home.categories.subtitle')}</p>
           </div>
           <Link to="/categorias" className="hidden sm:flex text-xs font-bold text-blue-600 hover:text-blue-800 transition-colors items-center">
-            View All Catalog <i className="fas fa-arrow-right ml-1.5"></i>
+            {t('home.categories.viewAllCatalog')} <i className="fas fa-arrow-right ml-1.5"></i>
           </Link>
         </div>
 

@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useSearchParams, Link } from 'react-router-dom';
 import { useCartStore } from '../store/cartStore';
 import { useBusqueda } from '../hooks/useBusqueda.js';
@@ -9,6 +10,7 @@ import CardProducto from '../components/common/CardProducto';
 import ErrorState from '../components/common/ErrorState';
 
 export default function Busqueda() {
+  const { t } = useTranslation();
   const agregarAlCarrito = useCartStore((state) => state.agregarAlCarrito);
   const [searchParams] = useSearchParams();
   
@@ -39,9 +41,9 @@ export default function Busqueda() {
   };
 
   // Generador de título dinámico
-  const tituloMostrar = (marca && modelo) 
-    ? <><span className="text-gray-900">Compatibles con:</span> <span className="text-blue-600">{marca} {modelo}</span></>
-    : <><span className="text-gray-900">Results for:</span> <span className="text-blue-600">"{q}"</span></>;
+  const tituloMostrar = (marca && modelo)
+    ? <><span className="text-gray-900">{t('searchPage.compatibleWith')}</span> <span className="text-blue-600">{marca} {modelo}</span></>
+    : <><span className="text-gray-900">{t('searchPage.resultsFor')}</span> <span className="text-blue-600">"{q}"</span></>;
 
   return (
     <div className="min-h-screen bg-gray-50 py-12">
@@ -50,9 +52,9 @@ export default function Busqueda() {
         {/* Encabezado de Resultados */}
         <div className="mb-8">
           <nav className="flex text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-2 gap-2">
-            <Link to="/" className="hover:text-blue-600">Home</Link>
+            <Link to="/" className="hover:text-blue-600">{t('nav.home')}</Link>
             <span>/</span>
-            <span className="text-blue-900">Búsqueda</span>
+            <span className="text-blue-900">{t('searchPage.breadcrumb')}</span>
           </nav>
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
             <h1 className="text-3xl font-black uppercase tracking-tighter">
@@ -60,7 +62,7 @@ export default function Busqueda() {
             </h1>
             {!cargando && !error && (
               <p className="text-gray-400 font-bold text-sm bg-white border px-4 py-2 rounded-full h-fit shadow-sm">
-                {totalProductos} Resultados encontrados
+                {totalProductos} {t('searchPage.resultsFound')}
               </p>
             )}
           </div>
@@ -70,17 +72,17 @@ export default function Busqueda() {
         {cargando ? (
           <div className="flex justify-center items-center h-64 bg-white rounded-3xl border border-gray-100 shadow-sm flex-col gap-4">
             <i className="fas fa-spinner fa-spin text-4xl text-blue-600"></i>
-            <p className="text-xl text-gray-500 font-bold animate-pulse">Buscando en el catálogo...</p>
+            <p className="text-xl text-gray-500 font-bold animate-pulse">{t('searchPage.searching')}</p>
           </div>
         ) : error ? (
           <ErrorState mensaje={error} reintentar={reintentar} />
         ) : totalProductos === 0 ? (
           <div className="bg-white p-16 rounded-3xl border border-gray-100 text-center shadow-sm max-w-3xl mx-auto mt-12">
             <i className="fas fa-search text-6xl text-gray-200 mb-6 block"></i>
-            <h3 className="text-2xl font-black text-gray-800 mb-2 tracking-tighter">No encontramos accesorios</h3>
-            <p className="text-gray-500">We couldn't find results for this search. Try a different model or browse our categories.</p>
+            <h3 className="text-2xl font-black text-gray-800 mb-2 tracking-tighter">{t('searchPage.noAccessoriesTitle')}</h3>
+            <p className="text-gray-500">{t('searchPage.noResultsDesc')}</p>
             <Link to="/" className="mt-6 inline-block bg-blue-900 text-white px-8 py-3 rounded-xl font-bold hover:bg-blue-800 transition-colors">
-              Volver al inicio
+              {t('searchPage.backHome')}
             </Link>
           </div>
         ) : (

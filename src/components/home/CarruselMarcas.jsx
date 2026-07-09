@@ -1,20 +1,23 @@
 import React from 'react';
-
-// Las marcas líderes globales en conectividad y monitoreo médico
-const brands = [
-  { name: 'Masimo', specialty: 'SpO2 Innovation' },
-  { name: 'Nellcor', specialty: 'Pulse Oximetry' },
-  { name: 'Philips', specialty: 'Patient Monitoring' },
-  { name: 'GE Healthcare', specialty: 'Clinical Systems' },
-  { name: 'Mindray', specialty: 'Patient Care Solutions' },
-  { name: 'Dräger', specialty: 'Critical Care Ventilation' },
-  { name: 'Nihon Kohden', specialty: 'Cardiology & EEG' },
-  { name: 'Welch Allyn', specialty: 'Vital Signs Devices' },
-  { name: 'Schiller', specialty: 'Cardiopulmonary Diagnostics' },
-  { name: 'Datex-Ohmeda', specialty: 'Anesthesia Monitoring' }
-];
+import { useTranslation } from 'react-i18next';
 
 export default function CarruselMarcas() {
+  const { t } = useTranslation();
+
+  // Las marcas líderes globales en conectividad y monitoreo médico
+  const brands = [
+    { name: 'Masimo', specialty: t('home.brands.specialtyMasimo') },
+    { name: 'Nellcor', specialty: t('home.brands.specialtyNellcor') },
+    { name: 'Philips', specialty: t('home.brands.specialtyPhilips') },
+    { name: 'GE Healthcare', specialty: t('home.brands.specialtyGe') },
+    { name: 'Mindray', specialty: t('home.brands.specialtyMindray') },
+    { name: 'Dräger', specialty: t('home.brands.specialtyDrager') },
+    { name: 'Nihon Kohden', specialty: t('home.brands.specialtyNihonKohden') },
+    { name: 'Welch Allyn', specialty: t('home.brands.specialtyWelchAllyn') },
+    { name: 'Schiller', specialty: t('home.brands.specialtySchiller') },
+    { name: 'Datex-Ohmeda', specialty: t('home.brands.specialtyDatexOhmeda') }
+  ];
+
   // Duplicamos el arreglo para asegurar un bucle infinito perfectamente fluido y sin cortes
   const infiniteBrands = [...brands, ...brands];
 
@@ -23,10 +26,10 @@ export default function CarruselMarcas() {
       {/* Encabezado en Inglés */}
       <div className="max-w-7xl mx-auto px-4 mb-10 text-center sm:text-left">
         <h2 className="text-xs font-bold uppercase tracking-widest text-blue-600">
-          Compatible Ecosystems
+          {t('home.brands.eyebrow')}
         </h2>
         <p className="text-2xl font-black text-slate-900 mt-1 tracking-tight">
-          Supported OEM & Compatible Brands
+          {t('home.brands.title')}
         </p>
       </div>
 

@@ -1,5 +1,6 @@
 // src/pages/SubcategoriaDetalle.jsx
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useParams, Link } from 'react-router-dom';
 import { useCartStore } from '../store/cartStore'; 
 import { MAPA_SUBCATEGORIAS } from '../utils/constants'; 
@@ -15,6 +16,7 @@ const ITEMS_POR_PAGINA = 30;
 
 export default function SubcategoriaDetalle() {
   const { subId } = useParams();
+  const { t } = useTranslation();
   const agregarAlCarrito = useCartStore((state) => state.agregarAlCarrito);
   
   const infoCategoriaActual = MAPA_SUBCATEGORIAS.find(
@@ -59,10 +61,10 @@ export default function SubcategoriaDetalle() {
           <div className="mb-8 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
             <div>
               <nav className="flex text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-2 gap-2">
-                <Link to="/" className="hover:text-blue-600">Home</Link>
+                <Link to="/" className="hover:text-blue-600">{t('nav.home')}</Link>
                 <span>/</span>
                 <Link to={`/categorias?tipo=${infoCategoriaActual.main}`} className="hover:text-blue-600 uppercase">
-                  {infoCategoriaActual.main || 'Catálogo'}
+                  {infoCategoriaActual.main || t('subcategoryPage.catalog')}
                 </Link>
                 <span>/</span>
                 <span className="text-blue-900 uppercase">{infoCategoriaActual.title}</span>
@@ -72,7 +74,7 @@ export default function SubcategoriaDetalle() {
               </h1>
             </div>
             <p className="text-gray-400 font-bold text-sm bg-gray-100 px-4 py-2 rounded-full h-fit">
-              {total} Products
+              {total} {t('catalog.products')}
             </p>
           </div>
 
@@ -86,7 +88,7 @@ export default function SubcategoriaDetalle() {
           {cargando ? (
             <div className="flex justify-center items-center h-64 bg-white rounded-3xl border border-gray-100 shadow-sm flex-col gap-4">
               <i className="fas fa-spinner fa-spin text-4xl text-blue-600"></i>
-              <p className="text-xl text-gray-500 font-bold animate-pulse">Loading catalog...</p>
+              <p className="text-xl text-gray-500 font-bold animate-pulse">{t('subcategoryPage.loadingCatalog')}</p>
             </div>
           ) : error ? (
             <ErrorState mensaje={error} reintentar={reintentar} />
@@ -95,7 +97,7 @@ export default function SubcategoriaDetalle() {
               {total === 0 ? (
                 <div className="bg-white p-12 rounded-3xl border border-gray-100 text-center shadow-sm">
                   <i className="fas fa-box-open text-6xl text-gray-200 mb-4 block"></i>
-                  <h3 className="text-xl font-bold text-gray-800">No matching products</h3>
+                  <h3 className="text-xl font-bold text-gray-800">{t('subcategoryPage.noResults')}</h3>
                 </div>
               ) : (
                 <>

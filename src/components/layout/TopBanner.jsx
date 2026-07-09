@@ -1,8 +1,11 @@
+import { useTranslation } from 'react-i18next';
+
 function TopBanner() {
+  const { t } = useTranslation();
   return (
     <div className="bg-blue-600 text-white text-center py-2 text-xs font-bold uppercase tracking-widest">
-      The best prices on the market for specialized medical equipment
+      {t('topBanner.message')}
     </div>
   );
 }
-export default TopBanner; 
+export default TopBanner;

@@ -1,7 +1,9 @@
 // src/components/common/BotonWhatsapp.jsx
+import { useTranslation } from 'react-i18next';
 import { useCartStore } from '../../store/cartStore';
 
 function BotonWhatsapp() {
+  const { t } = useTranslation();
   // 1. Extraemos el carrito de Zustand
   const { carrito } = useCartStore();
 
@@ -12,11 +14,11 @@ function BotonWhatsapp() {
   const generarMensaje = () => {
     // Si el carrito está vacío, mandamos un mensaje de contacto general
     if (carrito.length === 0) {
-      return encodeURIComponent("Hello VitalSupply team, I would like to receive more information.");
+      return encodeURIComponent(t('whatsapp.generalInquiry'));
     }
 
     // Si hay productos, armamos el listado
-    let mensaje = "Hello VitalSupply team, I want to finalize the following order:\n\n";
+    let mensaje = t('whatsapp.orderGreeting') + "\n\n";
     let total = 0;
 
     carrito.forEach((item) => {
@@ -24,11 +26,11 @@ function BotonWhatsapp() {
       total += subtotal;
       // Usamos el nombre del producto, o el SKU si el nombre no está disponible en la vista
       const nombreProducto = item.nombre || item.mi_sku;
-      mensaje += `- ${item.cantidad}x ${nombreProducto} ($${item.precio} each)\n`;
+      mensaje += t('whatsapp.itemLine', { cantidad: item.cantidad, nombre: nombreProducto, precio: item.precio }) + "\n";
     });
 
-    mensaje += `\nTotal estimated: $${total.toFixed(2)} USD\n\n`;
-    mensaje += "I am waiting to coordinate the payment method and shipping.";
+    mensaje += "\n" + t('whatsapp.totalEstimated', { total: total.toFixed(2) }) + "\n\n";
+    mensaje += t('whatsapp.closing');
 
     // encodeURIComponent convierte los espacios y saltos de línea para que WhatsApp los lea bien
     return encodeURIComponent(mensaje);
@@ -42,7 +44,7 @@ function BotonWhatsapp() {
       href={link}
       target="_blank"
       rel="noopener noreferrer"
-      aria-label="Contact us on WhatsApp"
+      aria-label={t('whatsapp.contactAria')}
       className="fixed bottom-8 left-8 bg-green-500 text-white w-16 h-16 rounded-full flex items-center justify-center text-3xl shadow-2xl hover:bg-green-600 hover:scale-110 transition-all z-[100]"
     >
       <i className="fab fa-whatsapp"></i>

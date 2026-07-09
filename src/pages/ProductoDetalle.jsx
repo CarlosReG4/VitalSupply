@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useParams, Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async'; // Importamos el SEO
 import { useProducto } from '../hooks/useProducto';
@@ -17,7 +18,8 @@ function normalizarJsonb(campo) {
 const ProductoDetalle = () => {
   // Extraemos id o sku de la URL para que no falle sin importar la ruta
   const { id, sku } = useParams();
-  const skuBusqueda = id || sku; 
+  const { t } = useTranslation();
+  const skuBusqueda = id || sku;
 
   const { producto, variantes, loading, error } = useProducto(skuBusqueda); 
   const [cantidad, setCantidad] = useState(1);
@@ -35,15 +37,15 @@ const ProductoDetalle = () => {
   if (loading) return (
     <div className="min-h-screen flex flex-col justify-center items-center gap-4">
       <i className="fas fa-spinner fa-spin text-4xl text-blue-600"></i>
-      <p className="text-gray-500 font-bold">Cargando detalles...</p>
+      <p className="text-gray-500 font-bold">{t('productPage.loadingDetails')}</p>
     </div>
   );
 
   // PANTALLA DE ERROR
   if (error || !producto) return (
     <div className="p-20 text-center">
-      <h2 className="text-2xl font-bold text-gray-800">Producto no encontrado.</h2>
-      <p className="text-gray-500">SKU {skuBusqueda} was not found in our catalog.</p>
+      <h2 className="text-2xl font-bold text-gray-800">{t('productPage.notFound')}</h2>
+      <p className="text-gray-500">{t('productPage.skuNotFound', { sku: skuBusqueda })}</p>
     </div>
   );
 
@@ -86,7 +88,7 @@ const ProductoDetalle = () => {
           
           {/* BREADCRUMBS */}
           <nav className="text-xs text-gray-300 mb-8 flex gap-2">
-             <Link to="/" className="hover:text-blue-600">Home</Link>
+             <Link to="/" className="hover:text-blue-600">{t('nav.home')}</Link>
              <span>›</span>
              <Link to={`/categorias?tipo=${producto.categoria}`} className="hover:text-blue-600">{producto.categoria}</Link>
              <span>›</span>
@@ -145,7 +147,7 @@ const ProductoDetalle = () => {
               </div>
               
               <div className="text-xs text-gray-500 mb-6">
-                Part Number <span className="font-bold text-black">{producto.mi_sku}</span>
+                {t('catalog.partNumber')} <span className="font-bold text-black">{producto.mi_sku}</span>
               </div>
 
               {todasLasOpciones.length > 0 && (
@@ -163,7 +165,7 @@ const ProductoDetalle = () => {
                         }`}
                       >
                         <span className="text-[11px] text-gray-700 mb-1 leading-tight">
-                          {v.tipo || `Option ${i + 1}`}
+                          {v.tipo || t('productPage.option', { num: i + 1 })}
                         </span>
                         <span className="text-[11px] font-bold text-gray-900">
                           ${Number(v.precio_venta_sugerido ?? v.precio).toLocaleString('en-US', { minimumFractionDigits: 0 })}
@@ -178,14 +180,14 @@ const ProductoDetalle = () => {
             {/* COLUMNA 3: PRECIO Y CHECKOUT */}
             <div className="lg:col-span-3 pt-2">
               <div className="flex justify-between items-start mb-6">
-                <span className="text-xs font-bold text-black mt-1">Price:</span>
+                <span className="text-xs font-bold text-black mt-1">{t('product.price')}:</span>
                 <span className="text-2xl font-bold text-yellow-500">
                   ${Number(producto.precio_venta_sugerido ?? producto.precio).toLocaleString('en-US', { minimumFractionDigits: 0 })}
                 </span>
               </div>
 
               <div className="flex justify-between items-center mb-4">
-                <span className="text-xs font-bold text-black mt-1">Quantity:</span>
+                <span className="text-xs font-bold text-black mt-1">{t('product.quantity')}:</span>
                 <div className="flex items-center border border-gray-300 rounded overflow-hidden">
                   <button
                     type="button"
@@ -217,43 +219,43 @@ const ProductoDetalle = () => {
               </div>
               
               <div className="text-right text-[10px] text-gray-400 mb-6">
-                In stock
+                {t('product.inStock')}
               </div>
 
               <button 
                 onClick={() => agregarAlCarrito({ ...producto, cantidad })}
                 className="w-full bg-[#8ced00] hover:bg-[#7bc800] text-white py-3 font-bold transition-colors mb-8 text-sm shadow-sm"
               >
-                Add to Cart
+                {t('product.addToCart')}
               </button>
 
               <div className="space-y-6">
                 <div className="flex items-start gap-4">
                   <i className="fas fa-piggy-bank text-gray-300 text-xl w-6 text-center"></i>
                   <div>
-                    <strong className="block text-[11px] text-gray-600 uppercase tracking-wide">Up to 60% Savings</strong>
-                    <span className="text-[10px] text-gray-400 leading-tight block mt-1">Quality compatibles save you money</span>
+                    <strong className="block text-[11px] text-gray-600 uppercase tracking-wide">{t('product.savings')}</strong>
+                    <span className="text-[10px] text-gray-400 leading-tight block mt-1">{t('product.savingsDesc')}</span>
                   </div>
                 </div>
                 <div className="flex items-start gap-4">
                   <i className="fas fa-link text-gray-300 text-xl w-6 text-center"></i>
                   <div>
-                    <strong className="block text-[11px] text-gray-600 uppercase tracking-wide">100% Guaranteed Compatible</strong>
-                    <span className="text-[10px] text-gray-400 leading-tight block mt-1">Works like the OEM or your money back</span>
+                    <strong className="block text-[11px] text-gray-600 uppercase tracking-wide">{t('product.guaranteed')}</strong>
+                    <span className="text-[10px] text-gray-400 leading-tight block mt-1">{t('product.guaranteedDesc')}</span>
                   </div>
                 </div>
                 <div className="flex items-start gap-4">
                   <i className="fas fa-truck text-gray-300 text-xl w-6 text-center"></i>
                   <div>
-                    <strong className="block text-[11px] text-gray-600 uppercase tracking-wide">Expedited Shipping</strong>
-                    <span className="text-[10px] text-gray-400 leading-tight block mt-1">Order now, ships when available</span>
+                    <strong className="block text-[11px] text-gray-600 uppercase tracking-wide">{t('product.shipping')}</strong>
+                    <span className="text-[10px] text-gray-400 leading-tight block mt-1">{t('product.shippingDesc')}</span>
                   </div>
                 </div>
                 <div className="flex items-start gap-4">
                   <i className="fas fa-box text-gray-300 text-xl w-6 text-center"></i>
                   <div>
-                    <strong className="block text-[11px] text-gray-600 uppercase tracking-wide">Easy Returns</strong>
-                    <span className="text-[10px] text-gray-400 leading-tight block mt-1">Hassle-free 30 day return policy</span>
+                    <strong className="block text-[11px] text-gray-600 uppercase tracking-wide">{t('product.returns')}</strong>
+                    <span className="text-[10px] text-gray-400 leading-tight block mt-1">{t('product.returnsDesc')}</span>
                   </div>
                 </div>
               </div>
@@ -267,10 +269,10 @@ const ProductoDetalle = () => {
             {/* COMPATIBILITY */}
             {compatibilityList.length > 0 && (
               <div className="mb-12">
-                <h2 className="text-lg font-bold text-black mb-6">Compatibility:</h2>
+                <h2 className="text-lg font-bold text-black mb-6">{t('catalog.compatibility')}:</h2>
                 <div className="border-b border-gray-300 pb-2 flex text-sm font-bold text-black mb-4">
-                  <div className="w-1/3">Manufacturer</div>
-                  <div className="w-2/3">Model</div>
+                  <div className="w-1/3">{t('catalog.manufacturer')}</div>
+                  <div className="w-2/3">{t('catalog.model')}</div>
                 </div>
                 <div className="flex flex-col">
                   {compatibilityList.map((item, i) => (
@@ -290,10 +292,10 @@ const ProductoDetalle = () => {
             {/* OEM CROSS REFERENCES */}
             {oemcrossList.length > 0 && (
               <div className="mb-12">
-                <h2 className="text-lg font-bold text-black mb-6">OEM Cross Reference:</h2>
+                <h2 className="text-lg font-bold text-black mb-6">{t('productPage.oemCrossReference')}:</h2>
                 <div className="border-b border-gray-300 pb-2 flex text-sm font-bold text-black mb-4">
-                  <div className="w-1/3">Manufacturer</div>
-                  <div className="w-2/3">OEM Part #</div>
+                  <div className="w-1/3">{t('catalog.manufacturer')}</div>
+                  <div className="w-2/3">{t('productPage.oemPartHeader')}</div>
                 </div>
                 <div className="flex flex-col">
                   {oemcrossList.map((item, i) => (
@@ -313,7 +315,7 @@ const ProductoDetalle = () => {
             {/* TECHNICAL SPECIFICATIONS */}
             {especificacionesList.length > 0 && (
               <div className="mb-12">
-                <h2 className="text-lg font-bold text-black mb-6">Technical Specifications:</h2>
+                <h2 className="text-lg font-bold text-black mb-6">{t('productPage.technicalSpecifications')}:</h2>
                 <div className="flex flex-col border-t border-gray-200 pt-2">
                   {especificacionesList.map((item, i) => (
                     <div key={i} className="flex text-sm py-3 border-b border-gray-100">

@@ -1,33 +1,35 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 export default function HeroBanner() {
+  const { t } = useTranslation();
   const [currentSlide, setCurrentSlide] = useState(0);
 
   // Definición de las diapositivas (Slides)
   const slides = [
     {
-      title: "Premium Medical Sensors & Cables",
-      subtitle: "100% Compatible with Leading Patient Monitors",
-      description: "High-precision SpO2 sensors, ECG cables, and temperature probes certified for critical hospital environments.",
-      buttonText: "Explore Catalog",
+      title: t('home.hero.slide1Title'),
+      subtitle: t('home.hero.slide1Subtitle'),
+      description: t('home.hero.slide1Description'),
+      buttonText: t('home.hero.slide1ButtonText'),
       buttonLink: "/tienda",
       // Puedes usar imágenes de Unsplash profesionales de stock médico temporales en lo que pones las tuyas
       image: "https://images.unsplash.com/photo-1516549655169-df83a0774514?q=80&w=1600&auto=format&fit=crop"
     },
     {
-      title: "Maximize Technical Compatibility",
-      subtitle: "Zero Risk, Precision Guaranteed",
-      description: "Engineered to match strict OEM specifications for Mindray, Philips, GE, and more. Certified quality you can trust.",
-      buttonText: "Use Compatibility Finder",
+      title: t('home.hero.slide2Title'),
+      subtitle: t('home.hero.slide2Subtitle'),
+      description: t('home.hero.slide2Description'),
+      buttonText: t('home.hero.slide2ButtonText'),
       buttonLink: "#compatibility-finder",
       image: "https://images.unsplash.com/photo-1584515933487-78021c673153?q=80&w=1600&auto=format&fit=crop"
     },
     {
-      title: "B2B Wholesale Supply Programs",
-      subtitle: "Specialized Volume Pricing for Clinics & Hospitals",
-      description: "Partner with VitalSupply for stable bulk supply, custom medical cable manufacturing, and priority logistics across the region.",
-      buttonText: "Contact Wholesale Specialist",
+      title: t('home.hero.slide3Title'),
+      subtitle: t('home.hero.slide3Subtitle'),
+      description: t('home.hero.slide3Description'),
+      buttonText: t('home.hero.slide3ButtonText'),
       buttonLink: "/contacto",
       image: "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?q=80&w=1600&auto=format&fit=crop"
     }
@@ -112,7 +114,7 @@ export default function HeroBanner() {
             className={`h-2.5 rounded-full transition-all duration-300 ${
               index === currentSlide ? 'w-8 bg-blue-500' : 'w-2.5 bg-slate-500/50 hover:bg-slate-400'
             }`}
-            aria-label={`Go to slide ${index + 1}`}
+            aria-label={t('home.hero.goToSlide', { number: index + 1 })}
           />
         ))}
       </div>

@@ -5,10 +5,12 @@
 
 import { PayPalScriptProvider, PayPalButtons } from '@paypal/react-paypal-js';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { crearOrdenPaypal, capturarOrdenPaypal } from '../../utils/checkout';
 
 function BotonPaypal({ carrito }) {
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   if (!carrito || carrito.length === 0) return null;
 
@@ -29,7 +31,7 @@ function BotonPaypal({ carrito }) {
               return await crearOrdenPaypal(carrito);
             } catch (err) {
               console.error('Error creando orden PayPal:', err);
-              alert('No se pudo iniciar el pago con PayPal. Intenta de nuevo o cotiza por WhatsApp.');
+              alert(t('paypal.startError'));
               throw err;
             }
           }}
@@ -40,7 +42,7 @@ function BotonPaypal({ carrito }) {
               navigate('/pago-exitoso');
             } catch (err) {
               console.error('Error capturando pago PayPal:', err);
-              alert('Hubo un problema al confirmar tu pago. Si te cobraron, contáctanos por WhatsApp.');
+              alert(t('paypal.captureError'));
             }
           }}
           onError={(err) => {

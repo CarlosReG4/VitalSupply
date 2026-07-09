@@ -1,21 +1,23 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 
 export default function Testimonios() {
+  const { t } = useTranslation();
   const reviews = [
     {
       name: "Dr. Robert Mendez",
-      role: "Department Head, Central Hospital",
-      text: "The quality of the SpO2 sensors is exceptional. They have reduced our replacement costs significantly while maintaining precision.",
+      role: t('home.testimonials.review1Role'),
+      text: t('home.testimonials.review1Text'),
     },
     {
       name: "Eng. Anna Sophia Ruiz",
-      role: "Biomedical Engineering Coordinator",
-      text: "Customer service is top-tier. They provided technical support that saved us hours of troubleshooting. Highly recommended.",
+      role: t('home.testimonials.review2Role'),
+      text: t('home.testimonials.review2Text'),
     },
     {
       name: "MedVida Clinic",
-      role: "Purchasing Manager",
-      text: "Reliable equipment and fast shipping. We've been working with VitalSupply for a year and haven't had a single issue.",
+      role: t('home.testimonials.review3Role'),
+      text: t('home.testimonials.review3Text'),
     }
   ];
 
@@ -23,8 +25,8 @@ export default function Testimonios() {
     <section className="bg-white py-16 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-12">
-          <h2 className="text-blue-500 font-bold tracking-widest text-sm uppercase mb-2">Social Proof</h2>
-          <p className="text-3xl font-bold text-slate-900">Trusted by Professionals</p>
+          <h2 className="text-blue-500 font-bold tracking-widest text-sm uppercase mb-2">{t('home.testimonials.eyebrow')}</h2>
+          <p className="text-3xl font-bold text-slate-900">{t('home.testimonials.title')}</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">

@@ -1,8 +1,10 @@
 import { useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { supabase } from '../api/supabase'; 
+import { useTranslation } from 'react-i18next';
+import { supabase } from '../api/supabase';
 
 const QRRedirect = () => {
+  const { t } = useTranslation();
   const { slug } = useParams();
 
   useEffect(() => {
@@ -42,8 +44,8 @@ const QRRedirect = () => {
     <div className="flex h-screen w-full items-center justify-center bg-gray-50">
       <div className="text-center">
         <i className="fas fa-spinner fa-spin text-4xl text-blue-600 mb-4"></i>
-        <h2 className="text-xl font-semibold text-gray-700">Connecting with VitalSupply...</h2>
-        <p className="text-sm text-gray-400 mt-1">Loading medical catalog...</p>
+        <h2 className="text-xl font-semibold text-gray-700">{t('qrRedirect.connecting')}</h2>
+        <p className="text-sm text-gray-400 mt-1">{t('qrRedirect.loadingCatalog')}</p>
       </div>
     </div>
   );

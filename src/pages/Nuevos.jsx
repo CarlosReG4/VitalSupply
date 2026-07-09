@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { supabase } from '../api/supabase';
 import { useCartStore } from '../store/cartStore';
 import { formatearPrecio } from '../utils/helpers';
 
 function Nuevos() {
+  const { t } = useTranslation();
   const agregarAlCarrito = useCartStore((state) => state.agregarAlCarrito);
 
   const [productos, setProductos] = useState([]);
@@ -45,9 +47,9 @@ function Nuevos() {
       <div className="bg-teal-700 text-white py-12">
         <div className="container mx-auto px-4 text-center">
           <h1 className="text-4xl font-black uppercase tracking-tighter italic">
-            Nuevos <span className="text-teal-300">Lanzamientos</span>
+            {t('newPage.titleNew')} <span className="text-teal-300">{t('newPage.titleReleases')}</span>
           </h1>
-          <p className="mt-2 text-teal-100">The last additions to our VitalSupply catalog.</p>
+          <p className="mt-2 text-teal-100">{t('newPage.subtitle')}</p>
         </div>
       </div>
 
@@ -57,14 +59,14 @@ function Nuevos() {
         {cargando && (
           <div className="flex flex-col items-center justify-center py-20 gap-4">
             <i className="fas fa-spinner fa-spin text-3xl text-teal-600"></i>
-            <p className="text-gray-500 font-bold">Loading news realeases...</p>
+            <p className="text-gray-500 font-bold">{t('newPage.loading')}</p>
           </div>
         )}
 
         {!cargando && error && (
           <div className="text-center py-20">
-            <p className="text-gray-700 font-bold text-lg">We were unable to load the releases.</p>
-            <p className="text-gray-400 text-sm mt-1">Please reload the page or try again later.</p>
+            <p className="text-gray-700 font-bold text-lg">{t('newPage.errorTitle')}</p>
+            <p className="text-gray-400 text-sm mt-1">{t('newPage.errorDesc')}</p>
           </div>
         )}
 
@@ -74,8 +76,8 @@ function Nuevos() {
             <div className="inline-block p-6 bg-white rounded-full shadow-sm mb-4">
                <i className="fas fa-box-open text-4xl text-gray-300"></i>
             </div>
-            <p className="text-gray-700 font-bold text-xl">No new releases available.</p>
-            <p className="text-gray-500 mt-2">Please check back later for the latest additions to our medical inventory.</p>
+            <p className="text-gray-700 font-bold text-xl">{t('newPage.emptyTitle')}</p>
+            <p className="text-gray-500 mt-2">{t('newPage.emptyDesc')}</p>
           </div>
         )}
 
@@ -89,7 +91,7 @@ function Nuevos() {
               >
                 {/* Etiqueta "NUEVO" */}
                 <div className="absolute top-4 right-4 bg-teal-500 text-white text-[10px] font-black px-2 py-1 rounded uppercase tracking-widest z-10 shadow-sm">
-                  NUEVO
+                  {t('newPage.badgeNew')}
                 </div>
 
                 <Link to={`/producto/${producto.mi_sku}`} className="flex flex-col flex-1 cursor-pointer">
@@ -117,7 +119,7 @@ function Nuevos() {
                   onClick={() => agregarAlCarrito(producto)}
                   className="w-full bg-white border-2 border-teal-700 text-teal-700 py-2 text-xs font-bold uppercase tracking-widest hover:bg-teal-700 hover:text-white transition-colors"
                 >
-                  Add to Cart
+                  {t('product.addToCart')}
                 </button>
               </div>
             ))}

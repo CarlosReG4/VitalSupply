@@ -1,9 +1,11 @@
 // src/pages/PagoExitoso.jsx
 import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useCartStore } from '../store/cartStore';
 
 function PagoExitoso() {
+  const { t } = useTranslation();
   const limpiarCarrito = useCartStore((state) => state.limpiarCarrito);
 
   // Al confirmar el pago, vaciamos el carrito.
@@ -17,16 +19,16 @@ function PagoExitoso() {
         <i className="fas fa-check text-4xl"></i>
       </div>
 
-      <h1 className="text-3xl font-black text-gray-900 mb-3 tracking-tighter">Payment received!</h1>
+      <h1 className="text-3xl font-black text-gray-900 mb-3 tracking-tighter">{t('paySuccess.title')}</h1>
       <p className="text-gray-500 max-w-md mb-10 text-sm">
-        Thank you for your purchase. You'll receive an order confirmation by email. Our team will prepare it and contact you about shipping.
+        {t('paySuccess.message')}
       </p>
 
       <Link
         to="/"
         className="bg-blue-900 text-white px-6 py-3 rounded-xl font-bold hover:bg-blue-800 transition-all shadow-lg flex items-center gap-2"
       >
-        <i className="fas fa-home"></i> Back to home
+        <i className="fas fa-home"></i> {t('paySuccess.backHome')}
       </Link>
     </div>
   );

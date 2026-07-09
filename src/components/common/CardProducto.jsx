@@ -1,8 +1,10 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { formatearPrecio } from '../../utils/helpers';
 
 export default function CardProducto({ producto, agregarAlCarrito }) {
+  const { t } = useTranslation();
   return (
     <div className="group bg-white border border-slate-100 rounded-xl p-5 shadow-soft hover:shadow-soft-hover transition-all duration-300 flex flex-col relative overflow-hidden">
       
@@ -26,7 +28,7 @@ export default function CardProducto({ producto, agregarAlCarrito }) {
         {/* SKU con fuente monoespaciada */}
         <div className="flex items-center gap-2 mb-4">
           <span className="text-[10px] font-mono font-medium bg-slate-100 text-slate-500 px-2 py-1 rounded tracking-wider">
-            SKU: {producto.mi_sku}
+            {t('card.skuLabel')} {producto.mi_sku}
           </span>
         </div>
       </Link>
@@ -38,7 +40,7 @@ export default function CardProducto({ producto, agregarAlCarrito }) {
         <button 
           onClick={() => agregarAlCarrito(producto)}
           className="bg-slate-900 text-white p-2.5 rounded-lg hover:bg-blue-600 transition-colors shadow-sm"
-          title="Add to cart"
+          title={t('card.addToCart')}
         >
           <i className="fas fa-cart-plus text-sm"></i>
         </button>
