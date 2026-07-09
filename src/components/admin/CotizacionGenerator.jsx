@@ -23,8 +23,8 @@ const COL = {
 const COLS_BUSQUEDA = [COL.pk, COL.nombre, COL.competencia, COL.sku_sinok];
 
 const EMPRESA = {
-  nombre: "VitalSupply", rfc: "RFC: __________",
-  dir: "Torreon, Coahuila, Mexico", tel: "WhatsApp +52 871 380 0906",
+  nombre: "VitalSupply", rfc: "RFC: REGC0101064D9",
+  dir: "Torreon, Coahuila, Mexico", tel: "WhatsApp +52 871 782 1161",
   web: "vitalsupply.site", email: "ventas@vitalsupply.site",
 };
 const PROVEEDOR = {
