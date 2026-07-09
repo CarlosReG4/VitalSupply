@@ -234,9 +234,9 @@
     "notFound": "Product not found.",
     "skuNotFound": "SKU {{sku}} was not found in our catalog.",
     "option": "Option {{num}}",
-    "oemCrossReference": "OEM Cross Reference:",
+    "oemCrossReference": "OEM Cross Reference",
     "oemPartHeader": "OEM Part #",
-    "technicalSpecifications": "Technical Specifications:"
+    "technicalSpecifications": "Technical Specifications"
   },
   "paypal": {
     "startError": "We couldn't start the payment with PayPal. Please try again or request a quote via WhatsApp.",
