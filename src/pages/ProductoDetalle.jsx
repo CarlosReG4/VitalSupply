@@ -5,6 +5,7 @@ import { Helmet } from 'react-helmet-async'; // Importamos el SEO
 import { useProducto } from '../hooks/useProducto';
 import { useCartStore } from '../store/cartStore';
 import { nombreProducto } from '../utils/helpers';
+import VariantSelector from '../components/producto/VariantSelector';
 
 // Helper: normaliza el campo JSONB (puede venir como array, objeto o null).
 function normalizarJsonb(campo) {
@@ -27,12 +28,14 @@ const ProductoDetalle = () => {
   const [imagenActiva, setImagenActiva] = useState(null);
   const agregarAlCarrito = useCartStore((state) => state.agregarAlCarrito);
 
+  // Tarea A: la imagen principal SIEMPRE corresponde al SKU cargado.
+  // Se sincroniza con la identidad del producto (mi_sku), no con el índice 0,
+  // para que al navegar entre variantes o entrar por URL directa la foto
+  // activa sea la del SKU actual (con fallback a /sin-imagen.svg si no tiene).
   useEffect(() => {
     setCantidad(1);
-    if (producto?.imagen_url) {
-      setImagenActiva(producto.imagen_url);
-    }
-  }, [skuBusqueda, producto]);
+    setImagenActiva(producto?.imagen_url || null);
+  }, [producto?.mi_sku]);
 
   // PANTALLA DE CARGA
   if (loading) return (
@@ -151,7 +154,12 @@ const ProductoDetalle = () => {
                 {t('catalog.partNumber')} <span className="font-bold text-black">{producto.mi_sku}</span>
               </div>
 
-              {todasLasOpciones.length > 0 && (
+              {/* Tarea B: selector universal de variantes (por grupo_variantes) */}
+              <VariantSelector producto={producto} />
+
+              {/* Bloque de opciones anterior (por url); se oculta si hay grupo_variantes
+                  para no duplicar selectores. */}
+              {!producto.grupo_variantes && todasLasOpciones.length > 0 && (
                 <div className="grid grid-cols-2 gap-y-4 gap-x-2">
                   {todasLasOpciones.map((v, i) => {
                     const isActive = producto.mi_sku === v.mi_sku;
