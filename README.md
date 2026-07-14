@@ -74,7 +74,10 @@ Capturas del filtro funcionando en el sitio desplegado (`vitalsupply.site`):
 
 - [NIBP Cuffs — Talla = "Large Adult" (85 → 9 productos)](docs/screenshots/nibp-cuffs-filter.png)
 - [Disposable NIBP Cuffs — Circunferencia = "25-35 cm" (2 productos)](docs/screenshots/disposable-nibp-cuffs-filter.png)
+- [Categoría Veterinary — 100 productos, nombres en español](docs/screenshots/veterinary-page.png)
 
 ![NIBP Cuffs filtrado por talla](docs/screenshots/nibp-cuffs-filter.png)
 
 ![Disposable NIBP Cuffs filtrado por circunferencia](docs/screenshots/disposable-nibp-cuffs-filter.png)
+
+![Categoría Veterinary desplegada](docs/screenshots/veterinary-page.png)
