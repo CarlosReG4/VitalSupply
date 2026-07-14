@@ -60,6 +60,9 @@ function App() {
                 <Route path="/" element={<Home />} />
                 <Route path="/nosotros" element={<Nosotros />} />
                 <Route path="/categorias" element={<Categorias />} />
+                {/* Alias: varios links historicos apuntan a /tienda; lo mandamos
+                    al mismo listado de catalogo (default SpO2) para evitar 404. */}
+                <Route path="/tienda" element={<Categorias />} />
                 <Route path="/marcas" element={<Marcas />} />
                 <Route path="/promociones" element={<Promociones />} />
                 <Route path="/nuevos" element={<Nuevos />} />

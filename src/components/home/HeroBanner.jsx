@@ -13,7 +13,8 @@ export default function HeroBanner() {
       subtitle: t('home.hero.slide1Subtitle'),
       description: t('home.hero.slide1Description'),
       buttonText: t('home.hero.slide1ButtonText'),
-      buttonLink: "/tienda",
+      // Abre el listado de productos en la categoría principal del negocio (SpO2).
+      buttonLink: "/categorias?tipo=SpO2",
       // Puedes usar imágenes de Unsplash profesionales de stock médico temporales en lo que pones las tuyas
       image: "https://images.unsplash.com/photo-1516549655169-df83a0774514?q=80&w=1600&auto=format&fit=crop"
     },
