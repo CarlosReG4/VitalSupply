@@ -10,6 +10,7 @@ const categorias = [
   { nombre: 'Temperature', icon: 'fas fa-thermometer-half' },
   { nombre: 'Fetal', icon: 'fas fa-baby' },
   { nombre: 'Oxygen Sensors', icon: 'fas fa-lungs' },
+  { nombre: 'Veterinary', icon: 'fas fa-paw' },
 ];
 
 function CategoriasPrincipales() {

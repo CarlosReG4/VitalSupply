@@ -8,7 +8,7 @@ import { useAuth } from '../../context/AuthContext';
 import LanguageSwitcher from './LanguageSwitcher';
 import { nombreProducto } from '../../utils/helpers';
 
-const categoriesList = ['SpO2', 'ECG Cables', 'EKG Cables', 'NIBP', 'IBP Cables', 'Temperature', 'Fetal', 'Oxygen Sensors'];
+const categoriesList = ['SpO2', 'ECG Cables', 'EKG Cables', 'NIBP', 'IBP Cables', 'Temperature', 'Fetal', 'Oxygen Sensors', 'Veterinary'];
 const otrosList = ['Promociones', 'Novedades'];
 
 // Número de WhatsApp para cotizaciones (código de país + número, sin signos ni espacios)

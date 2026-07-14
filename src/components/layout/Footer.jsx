@@ -71,6 +71,7 @@ export default function Footer() {
                 <ul className="space-y-3 text-sm font-semibold">
                   <li><Link to="/categorias?tipo=Temperature" className="hover:text-blue-400 transition-colors">Temperature Probes</Link></li>
                   <li><Link to="/categorias?tipo=Fetal" className="hover:text-blue-400 transition-colors">Fetal Probes</Link></li>
+                  <li><Link to="/categorias?tipo=Veterinary" className="hover:text-blue-400 transition-colors">Veterinary</Link></li>
                   <li><Link to="/tienda" className="hover:text-blue-400 transition-colors">Patient Monitors</Link></li>
                   <li><Link to="/tienda" className="hover:text-blue-400 transition-colors">Medical Accessories</Link></li>
                   <li><Link to="/tienda" className="hover:text-blue-400 transition-colors">Veterinary Accessories</Link></li>
