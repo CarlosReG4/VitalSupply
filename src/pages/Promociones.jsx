@@ -2,9 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { supabase } from '../api/supabase';
 import { useCartStore } from '../store/cartStore';
+import { nombreProducto } from '../utils/helpers';
 
 function Promociones() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [promosData, setPromosData] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -35,7 +36,7 @@ function Promociones() {
         ...producto,
         precio: producto.precio_promocion
       });
-      alert(t('promosPage.addedToCart', { name: producto.nombre }));
+      alert(t('promosPage.addedToCart', { name: nombreProducto(producto, i18n.language) }));
     }
   };
 
@@ -86,9 +87,9 @@ function Promociones() {
                     <div className="h-40 bg-white border border-gray-100 flex items-center justify-center mb-4 p-2 rounded relative overflow-hidden">
                       {promo.imagen_url ? (
                         <img 
-                          src={promo.imagen_url} 
-                          alt={promo.nombre} 
-                          className="max-h-full max-w-full object-contain group-hover:scale-105 transition-transform duration-300" 
+                          src={promo.imagen_url}
+                          alt={nombreProducto(promo, i18n.language)}
+                          className="max-h-full max-w-full object-contain group-hover:scale-105 transition-transform duration-300"
                         />
                       ) : (
                         <img 
@@ -101,7 +102,7 @@ function Promociones() {
                     
                     <div className="flex-grow">
                       <h4 className="font-bold text-sm mb-1 text-gray-800 line-clamp-2">
-                        {promo.nombre}
+                        {nombreProducto(promo, i18n.language)}
                       </h4>
                       {promo.mi_sku && (
                         <p className="text-[10px] text-gray-400 font-mono mb-3">

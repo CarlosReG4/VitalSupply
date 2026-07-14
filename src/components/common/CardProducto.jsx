@@ -1,10 +1,11 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { formatearPrecio } from '../../utils/helpers';
+import { formatearPrecio, nombreProducto } from '../../utils/helpers';
 
 export default function CardProducto({ producto, agregarAlCarrito }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const nombre = nombreProducto(producto, i18n.language);
   return (
     <div className="group bg-white border border-slate-100 rounded-xl p-5 shadow-soft hover:shadow-soft-hover transition-all duration-300 flex flex-col relative overflow-hidden">
       
@@ -15,14 +16,14 @@ export default function CardProducto({ producto, agregarAlCarrito }) {
             src={producto.imagen_url || '/sin-imagen.svg'}
             onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = '/sin-imagen.svg'; }}
             
-            alt={producto.nombre} 
-            className="max-h-full max-w-full object-contain mix-blend-multiply transform group-hover:scale-105 transition-transform duration-500" 
+            alt={nombre}
+            className="max-h-full max-w-full object-contain mix-blend-multiply transform group-hover:scale-105 transition-transform duration-500"
           />
         </div>
         
         {/* Tipografía más profesional */}
         <h3 className="font-semibold text-sm text-slate-800 line-clamp-2 mb-2 group-hover:text-blue-600 transition-colors leading-relaxed">
-          {producto.nombre}
+          {nombre}
         </h3>
         
         {/* SKU con fuente monoespaciada */}

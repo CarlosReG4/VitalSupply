@@ -4,6 +4,7 @@ import { useParams, Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async'; // Importamos el SEO
 import { useProducto } from '../hooks/useProducto';
 import { useCartStore } from '../store/cartStore';
+import { nombreProducto } from '../utils/helpers';
 
 // Helper: normaliza el campo JSONB (puede venir como array, objeto o null).
 function normalizarJsonb(campo) {
@@ -18,7 +19,7 @@ function normalizarJsonb(campo) {
 const ProductoDetalle = () => {
   // Extraemos id o sku de la URL para que no falle sin importar la ruta
   const { id, sku } = useParams();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const skuBusqueda = id || sku;
 
   const { producto, variantes, loading, error } = useProducto(skuBusqueda); 
@@ -73,12 +74,12 @@ const ProductoDetalle = () => {
     <>
       {/* MAGIA DE SEO PARA GOOGLE */}
       <Helmet>
-        <title>{producto.nombre} | Catsen Medical</title>
-        <meta 
-          name="description" 
-          content={`Compra ${producto.nombre}. Sensor médico compatible con equipos de la marca. SKU: ${producto.mi_sku}. Envíos rápidos y seguros.`} 
+        <title>{nombreProducto(producto, i18n.language)} | Catsen Medical</title>
+        <meta
+          name="description"
+          content={`Compra ${nombreProducto(producto, i18n.language)}. Sensor médico compatible con equipos de la marca. SKU: ${producto.mi_sku}. Envíos rápidos y seguros.`}
         />
-        <meta property="og:title" content={`${producto.nombre} | Catsen Medical`} />
+        <meta property="og:title" content={`${nombreProducto(producto, i18n.language)} | Catsen Medical`} />
         <meta property="og:image" content={producto.imagen_url} />
       </Helmet>
 
@@ -92,7 +93,7 @@ const ProductoDetalle = () => {
              <span>›</span>
              <Link to={`/categorias?tipo=${producto.categoria}`} className="hover:text-blue-600">{producto.categoria}</Link>
              <span>›</span>
-             <span className="text-gray-400">{producto.nombre}</span>
+             <span className="text-gray-400">{nombreProducto(producto, i18n.language)}</span>
           </nav>
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-16">
@@ -104,7 +105,7 @@ const ProductoDetalle = () => {
                   src={imagenActiva || '/sin-imagen.svg'}
                   onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = '/sin-imagen.svg'; }}
                   
-                  alt={producto.nombre}
+                  alt={nombreProducto(producto, i18n.language)}
                   className="w-full h-full object-contain mix-blend-multiply transition-all duration-300"
                 />
               </div>
@@ -139,7 +140,7 @@ const ProductoDetalle = () => {
             {/* COLUMNA 2: TÍTULO Y VARIANTES */}
             <div className="lg:col-span-4 flex flex-col pt-2">
               <h1 className="text-2xl font-bold text-black leading-tight mb-2">
-                {producto.nombre}
+                {nombreProducto(producto, i18n.language)}
               </h1>
               
               <div className="flex text-yellow-400 text-xs mb-4">

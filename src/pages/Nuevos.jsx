@@ -3,10 +3,10 @@ import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { supabase } from '../api/supabase';
 import { useCartStore } from '../store/cartStore';
-import { formatearPrecio } from '../utils/helpers';
+import { formatearPrecio, nombreProducto } from '../utils/helpers';
 
 function Nuevos() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const agregarAlCarrito = useCartStore((state) => state.agregarAlCarrito);
 
   const [productos, setProductos] = useState([]);
@@ -98,13 +98,13 @@ function Nuevos() {
                   <div className="h-40 bg-gray-50 rounded flex items-center justify-center mb-4 overflow-hidden p-2">
                     <img
                       src={producto.imagen_url || '/sin-imagen.svg'}
-                      alt={producto.nombre}
+                      alt={nombreProducto(producto, i18n.language)}
                       className="max-h-full max-w-full object-contain mix-blend-multiply transform group-hover:scale-105 transition-transform duration-300"
                     />
                   </div>
 
                   <h4 className="font-bold text-sm mb-1 uppercase text-gray-800 group-hover:text-teal-600 transition-colors line-clamp-2">
-                    {producto.nombre}
+                    {nombreProducto(producto, i18n.language)}
                   </h4>
                   <p className="text-xs text-gray-500 mb-2">
                     SKU: <span className="text-teal-600 font-bold">{producto.mi_sku}</span>

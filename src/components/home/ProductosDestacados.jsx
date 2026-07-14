@@ -3,9 +3,10 @@ import { useCartStore } from '../../store/cartStore';
 import { Link } from 'react-router-dom';
 import { supabase } from '../../api/supabase';
 import { useTranslation } from 'react-i18next';
+import { nombreProducto } from '../../utils/helpers';
 
 function ProductosDestacados() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [prodActive, setProdActive] = useState(0);
   const agregarAlCarrito = useCartStore((state) => state.agregarAlCarrito);
   
@@ -88,10 +89,10 @@ function ProductosDestacados() {
                       src={producto.imagen_url || '/sin-imagen.svg'}
                       onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = '/sin-imagen.svg'; }}
                       
-                      alt={producto.nombre} 
+                      alt={nombreProducto(producto, i18n.language)} 
                       className="h-40 w-full object-contain mb-4 rounded transform group-hover:scale-105 transition-transform duration-300 mix-blend-multiply"
                     />
-                    <h4 className="font-bold text-sm mb-1 uppercase group-hover:text-blue-600 transition-colors line-clamp-2">{producto.nombre}</h4>
+                    <h4 className="font-bold text-sm mb-1 uppercase group-hover:text-blue-600 transition-colors line-clamp-2">{nombreProducto(producto, i18n.language)}</h4>
                     <p className="text-xs text-gray-400 mb-2 font-medium">{t('home.featured.sku')} <span className="text-gray-600">{producto.mi_sku}</span></p>
                   </Link>
                   
@@ -119,10 +120,10 @@ function ProductosDestacados() {
                       src={producto.imagen_url || '/sin-imagen.svg'}
                       onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = '/sin-imagen.svg'; }}
                       
-                      alt={producto.nombre} 
+                      alt={nombreProducto(producto, i18n.language)} 
                       className="h-40 w-full object-contain mb-4 rounded transform group-hover:scale-105 transition-transform duration-300 mix-blend-multiply"
                     />
-                    <h4 className="font-bold text-sm mb-1 uppercase group-hover:text-blue-600 transition-colors line-clamp-2">{producto.nombre}</h4>
+                    <h4 className="font-bold text-sm mb-1 uppercase group-hover:text-blue-600 transition-colors line-clamp-2">{nombreProducto(producto, i18n.language)}</h4>
                     <p className="text-xs text-gray-400 mb-2 font-medium">{t('home.featured.sku')} <span className="text-gray-600">{producto.mi_sku}</span></p>
                   </Link>
                   
