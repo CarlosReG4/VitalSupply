@@ -44,8 +44,9 @@ const T = {
     cot: "COTIZACION", oc: "ORDEN DE COMPRA", folio: "Folio", fecha: "Fecha",
     de: "DE:", cliente: "CLIENTE:", proveedor: "PARA (PROVEEDOR):",
     img: "Imagen", desc: "Descripcion", cant: "Cant", importe: "Importe", totalCol: "Total",
-    punit: (m) => `P. Unit (${m})`, subtotal: "Subtotal", descuento: "Descuento",
-    iva: "IVA", envio: "Envio", envioGratis: "Gratis", shipping: "Costo de envio", bank: "Cargo bancario",
+    punit: (m) => `P. Unit (${m})`, subtotal: "Subtotal", descuento: "Descuento", descuentoVolumen: "Descuento por volumen",
+    iva: "IVA", envio: "Envio", envioGratis: "Gratis", envioIncluido: "Incluido", envioAparte: "Se cotiza aparte",
+    shipping: "Costo de envio", bank: "Cargo bancario",
     total: "TOTAL", validez: "Validez de la oferta", notas: "Notas:", condiciones: "Condiciones:",
     condCliente: (m) => `Precios en ${m}. Productos compatibles / refacciones. Tiempo de entrega 10-15 dias habiles.\nGarantia de compatibilidad: cambio o devolucion si el producto no funciona con su equipo.\nPago: transferencia / PayPal / tarjeta. Cotizacion sujeta a disponibilidad.`,
     condPedido: "100% pago por adelantado. Envio por FedEx.",
@@ -56,8 +57,9 @@ const T = {
     cot: "QUOTATION", oc: "PURCHASE ORDER", folio: "Quote No", fecha: "Date",
     de: "FROM:", cliente: "CLIENT:", proveedor: "TO (SUPPLIER):",
     img: "Image", desc: "Description", cant: "Qty", importe: "Amount", totalCol: "Total",
-    punit: (m) => `Unit Price (${m})`, subtotal: "Subtotal", descuento: "Discount",
-    iva: "Tax", envio: "Shipping", envioGratis: "Free", shipping: "Shipping cost", bank: "Bank charge",
+    punit: (m) => `Unit Price (${m})`, subtotal: "Subtotal", descuento: "Discount", descuentoVolumen: "Volume discount",
+    iva: "Tax", envio: "Shipping", envioGratis: "Free", envioIncluido: "Included", envioAparte: "Quoted separately",
+    shipping: "Shipping cost", bank: "Bank charge",
     total: "TOTAL", validez: "Offer validity", notas: "Notes:", condiciones: "Terms:",
     condCliente: (m) => `Prices in ${m}. Compatible / replacement accessories. Lead time 10-15 business days.\nCompatibility guarantee: exchange or refund if the product does not work with your equipment.\nPayment: wire transfer / PayPal / card. Quotation subject to availability.`,
     condPedido: "100% payment in advance. Delivery by FedEx.",
@@ -70,14 +72,27 @@ const T = {
 const fmt = (n, m) => new Intl.NumberFormat("es-MX", { style: "currency", currency: m }).format(Number.isFinite(+n) ? +n : 0);
 const hoy = () => new Date().toISOString().slice(0, 10);
 
+// Normaliza tipo de descuento/envio (con inferencia para historial previo a estos campos)
+function descTipoDe(cot) { return cot.descuento_tipo || (Number(cot.descuento_pct) > 0 ? "pct" : "none"); }
+function envioTipoDe(cot) {
+  if (cot.tipo === "pedido") return "monto";
+  return cot.envio_tipo || (Number(cot.envio) > 0 ? "monto" : "gratis");
+}
 function totales(cot) {
   const sub = (cot.items || []).reduce((s, it) => s + (Number(it.qty) || 0) * (Number(it.precio) || 0), 0);
-  const desc = sub * (Number(cot.descuento_pct) || 0) / 100;
+  let desc = 0;
+  if (cot.tipo === "cliente") {
+    const dt = descTipoDe(cot);
+    if (dt === "pct") desc = sub * (Number(cot.descuento_pct) || 0) / 100;
+    else if (dt === "monto") desc = Math.min(Number(cot.descuento_monto) || 0, sub);
+  }
   const base = sub - desc;
   const iva = base * (Number(cot.iva_pct) || 0) / 100;
+  // El envio solo suma al total cuando es un monto; "incluido"/"gratis"/"se cotiza aparte" no suman.
+  const envioMonto = envioTipoDe(cot) === "monto" ? (Number(cot.envio) || 0) : 0;
   const total = cot.tipo === "pedido"
-    ? sub + (Number(cot.envio) || 0) + (Number(cot.cargo_banco) || 0)
-    : base + iva + (Number(cot.envio) || 0);
+    ? sub + envioMonto + (Number(cot.cargo_banco) || 0)
+    : base + iva + envioMonto;
   return { subtotal: sub, descuento: desc, iva, total };
 }
 function agrupar(items) {
@@ -217,9 +232,17 @@ async function construirPDF(cot) {
     if (Number(cot.cargo_banco) > 0) linea(t.bank, fmt(cot.cargo_banco, moneda));
   } else {
     linea(t.subtotal, fmt(subtotal, moneda));
-    if (descuento > 0) linea(`${t.descuento} (${cot.descuento_pct}%)`, "-" + fmt(descuento, moneda));
+    if (descuento > 0) {
+      const labDesc = descTipoDe(cot) === "pct" ? `${t.descuento} (${cot.descuento_pct}%)` : t.descuentoVolumen;
+      linea(labDesc, "-" + fmt(descuento, moneda));
+    }
     if (Number(cot.iva_pct) > 0) linea(`${t.iva} (${cot.iva_pct}%)`, fmt(iva, moneda));
-    linea(t.envio, Number(cot.envio) > 0 ? fmt(cot.envio, moneda) : t.envioGratis);
+    const et = envioTipoDe(cot);
+    const valEnvio = et === "monto" ? fmt(cot.envio, moneda)
+      : et === "incluido" ? t.envioIncluido
+      : et === "aparte" ? t.envioAparte
+      : t.envioGratis;
+    linea(t.envio, valEnvio);
   }
   if (!rfq) {
     // barra de TOTAL resaltada
@@ -259,12 +282,16 @@ export default function CotizacionGenerator() {
 
   const [items, setItems] = useState([]);
   const [sinPrecios, setSinPrecios] = useState(false); // pedido: solicitud de cotizacion (RFQ) sin precios
+  const [descTipo, setDescTipo] = useState("none");     // none | pct | monto
   const [descPct, setDescPct] = useState(0);
+  const [descMonto, setDescMonto] = useState(0);
   const [ivaOn, setIvaOn] = useState(false);
+  const [envioTipo, setEnvioTipo] = useState("gratis"); // incluido | gratis | monto | aparte
   const [envio, setEnvio] = useState(0);
   const [cargoBanco, setCargoBanco] = useState(0);
-  const [monedaCliente, setMonedaCliente] = useState("USD");
-  const [fx, setFx] = useState(20);
+  const [monedaCliente, setMonedaCliente] = useState("MXN");
+  const [fx, setFx] = useState(18);
+  const [fxAviso, setFxAviso] = useState(false);        // true si se uso el fallback por defecto
 
   const [q, setQ] = useState(""); const [res, setRes] = useState([]);
   const [buscando, setBuscando] = useState(false); const [error, setError] = useState("");
@@ -273,14 +300,39 @@ export default function CotizacionGenerator() {
   const tRef = useRef();
 
   const moneda = tipo === "pedido" ? "USD" : monedaCliente;
-  const conv = (usd) => (tipo === "cliente" && monedaCliente === "MXN" ? (Number(usd) || 0) * (Number(fx) || 0) : Number(usd) || 0);
 
   useEffect(() => { if (monedaCliente === "USD") setIvaOn(false); }, [monedaCliente]);
+
+  // Al cambiar la moneda del documento, reconvierte los precios ya capturados (USD <-> MXN)
+  const cambiarMoneda = (nueva) => {
+    const t = Number(fx) || 18;
+    setItems((prev) => prev.map((it) => {
+      let precio = Number(it.precio) || 0;
+      if (monedaCliente === "USD" && nueva === "MXN") precio = Math.round(precio * t);
+      else if (monedaCliente === "MXN" && nueva === "USD") precio = +(precio / t).toFixed(2);
+      return { ...it, precio };
+    }));
+    setMonedaCliente(nueva);
+  };
 
   const cargarHistorial = async () => {
     try { const { data } = await supabase.from("cotizaciones").select("*").order("created_at", { ascending: false }).limit(20); setHistorial(data || []); } catch (_) {}
   };
   useEffect(() => { cargarHistorial(); }, []);
+
+  // Tipo de cambio configurable en Supabase (public.config). Fallback 18.0 + aviso discreto.
+  useEffect(() => {
+    (async () => {
+      try {
+        const { data, error } = await supabase.from("config").select("valor").eq("clave", "tipo_cambio_mxn").single();
+        const v = parseFloat(data?.valor);
+        if (error || !Number.isFinite(v) || v <= 0) throw error || new Error("valor invalido");
+        setFx(v); setFxAviso(false);
+      } catch (_) {
+        setFx(18.0); setFxAviso(true);
+      }
+    })();
+  }, []);
 
   useEffect(() => {
     clearTimeout(tRef.current);
@@ -301,11 +353,18 @@ export default function CotizacionGenerator() {
   }, [q, tipo]);
 
   const agregar = (p) => {
-    // PEDIDO: costo real de proforma (si no esta confirmado queda 0 -> Emma cotiza).
-    // NUNCA usar precio de venta en documentos a proveedor.
-    const baseUSD = tipo === "pedido" ? p[COL.costo_proforma] : p[COL.precio];
+    // PEDIDO: costo real de proforma en USD (si no esta confirmado queda 0 -> Emma cotiza).
+    //         NUNCA usar precio de venta en documentos a proveedor.
+    // CLIENTE: el precio unitario se guarda en la MONEDA del documento. En MXN se pre-llena
+    //          con la sugerencia precio_usd * TC redondeada; el usuario puede sobreescribirlo
+    //          (p. ej. precio de canal 799) antes de generar el PDF.
+    const t = Number(fx) || 18;
+    const precioUsd = Number(p[COL.precio]) || 0;
+    const precioLinea = tipo === "pedido"
+      ? (Number(p[COL.costo_proforma]) || 0)
+      : (monedaCliente === "MXN" ? Math.round(precioUsd * t) : precioUsd);
     const confirmado = tipo === "pedido" ? !!p[COL.costo_confirmado] : true;
-    setItems((prev) => [...prev, { key: crypto.randomUUID(), grupo: "", sinok: p[COL.sku_sinok] || "", sku: p[COL.pk] || "", nombre: p[COL.nombre] || "(sin nombre)", imagen: p[COL.imagen] || "", qty: 1, precio: Number(baseUSD) || 0, confirmado }]);
+    setItems((prev) => [...prev, { key: crypto.randomUUID(), grupo: "", sinok: p[COL.sku_sinok] || "", sku: p[COL.pk] || "", nombre: p[COL.nombre] || "(sin nombre)", imagen: p[COL.imagen] || "", qty: 1, precio: precioLinea, precio_usd: precioUsd, confirmado }]);
     setQ(""); setRes([]);
   };
   const upd = (key, c, v) => setItems((prev) => prev.map((it) => (it.key === key ? { ...it, [c]: v } : it)));
@@ -316,16 +375,19 @@ export default function CotizacionGenerator() {
     correo_cliente: tipo === "cliente" ? (correoCliente || null) : null,
     validez, moneda,
     sin_precios: tipo === "pedido" && sinPrecios,
-    descuento_pct: tipo === "cliente" ? Number(descPct) || 0 : 0,
+    descuento_tipo: tipo === "cliente" ? descTipo : "none",
+    descuento_pct: tipo === "cliente" && descTipo === "pct" ? Number(descPct) || 0 : 0,
+    descuento_monto: tipo === "cliente" && descTipo === "monto" ? Number(descMonto) || 0 : 0,
     iva_pct: tipo === "cliente" && ivaOn ? IVA_PCT : 0,
-    envio: Number(envio) || 0,
+    envio_tipo: tipo === "cliente" ? envioTipo : "monto",
+    envio: tipo === "cliente" ? (envioTipo === "monto" ? Number(envio) || 0 : 0) : (Number(envio) || 0),
     cargo_banco: tipo === "pedido" ? Number(cargoBanco) || 0 : 0,
-    tipo_cambio: tipo === "cliente" && monedaCliente === "MXN" ? Number(fx) || 0 : null,
+    tipo_cambio: tipo === "cliente" ? Number(fx) || 0 : null,
     notas,
-    items: items.map((it) => ({ grupo: it.grupo || "", sku: it.sku, sinok: it.sinok, nombre: it.nombre, imagen: it.imagen || "", qty: Number(it.qty) || 0, precio: conv(it.precio) })),
+    items: items.map((it) => ({ grupo: it.grupo || "", sku: it.sku, sinok: it.sinok, nombre: it.nombre, imagen: it.imagen || "", qty: Number(it.qty) || 0, precio: Number(it.precio) || 0 })),
   });
 
-  const display = useMemo(() => totales(cotActual()), [items, descPct, ivaOn, envio, cargoBanco, monedaCliente, fx, tipo]);
+  const display = useMemo(() => totales(cotActual()), [items, descTipo, descPct, descMonto, ivaOn, envioTipo, envio, cargoBanco, monedaCliente, fx, tipo]);
 
   const generarYGuardar = async () => {
     if (items.length === 0) { alert("Agrega al menos un producto."); return; }
@@ -365,8 +427,13 @@ export default function CotizacionGenerator() {
         <Campo label="Atencion / contacto"><input style={S.in} value={atencion} onChange={(e) => setAtencion(e.target.value)} /></Campo>
         {tipo === "cliente" && <Campo label="Correo del cliente"><input style={S.in} type="email" value={correoCliente} onChange={(e) => setCorreoCliente(e.target.value)} placeholder="cliente@correo.com" /></Campo>}
         {tipo === "cliente" && <Campo label="Validez"><input style={S.in} value={validez} onChange={(e) => setValidez(e.target.value)} /></Campo>}
-        {tipo === "cliente" && (<Campo label="Moneda"><select style={S.in} value={monedaCliente} onChange={(e) => setMonedaCliente(e.target.value)}><option value="USD">USD (base)</option><option value="MXN">MXN (convertir)</option></select></Campo>)}
-        {tipo === "cliente" && monedaCliente === "MXN" && <Campo label="Tipo de cambio (MXN/USD)"><input style={S.in} type="number" step="0.01" value={fx} onChange={(e) => setFx(e.target.value)} /></Campo>}
+        {tipo === "cliente" && (<Campo label="Moneda"><select style={S.in} value={monedaCliente} onChange={(e) => cambiarMoneda(e.target.value)}><option value="MXN">MXN</option><option value="USD">USD</option></select></Campo>)}
+        {tipo === "cliente" && monedaCliente === "MXN" && (
+          <Campo label="Tipo de cambio (MXN/USD)">
+            <input style={S.in} type="number" step="0.01" value={fx} onChange={(e) => setFx(e.target.value)} />
+            {fxAviso && <span style={{ fontSize: 11, color: "#8a5a00" }}>⚠ Valor por defecto (18.0): no se pudo leer config.</span>}
+          </Campo>
+        )}
       </div>
 
       <div style={{ position: "relative", marginTop: 12 }}>
@@ -398,7 +465,7 @@ export default function CotizacionGenerator() {
       <table style={S.table}>
         <thead><tr>
           <th style={S.th}>Img</th><th style={S.th}>Grupo / Equipo</th><th style={S.th}>{tipo === "pedido" ? "Sino-K P/N" : "SKU"}</th>
-          <th style={S.th}>Producto</th><th style={S.th}>Cant</th><th style={S.th}>P. Unit USD</th>
+          <th style={S.th}>Producto</th><th style={S.th}>Cant</th><th style={S.th}>P. Unit ({moneda})</th>
           <th style={S.th}>Importe ({moneda})</th><th style={S.th}></th>
         </tr></thead>
         <tbody>
@@ -410,8 +477,11 @@ export default function CotizacionGenerator() {
               <td style={S.td}>{tipo === "pedido" ? (it.sinok || "-") : it.sku}</td>
               <td style={S.td}>{it.nombre}</td>
               <td style={S.td}><input style={S.inNum} type="number" min="1" value={it.qty} onChange={(e) => upd(it.key, "qty", e.target.value)} /></td>
-              <td style={S.td}><input style={S.inNum} type="number" step="0.01" value={it.precio} onChange={(e) => upd(it.key, "precio", e.target.value)} /></td>
-              <td style={S.td}>{fmt((it.qty || 0) * conv(it.precio), moneda)}</td>
+              <td style={S.td}>
+                <input style={S.inNum} type="number" step="0.01" value={it.precio} onChange={(e) => upd(it.key, "precio", e.target.value)} />
+                {tipo === "cliente" && it.precio_usd ? <div style={S.small}>ref USD {it.precio_usd}</div> : null}
+              </td>
+              <td style={S.td}>{fmt((Number(it.qty) || 0) * (Number(it.precio) || 0), moneda)}</td>
               <td style={S.td}><button style={S.del} onClick={() => quitar(it.key)}>x</button></td>
             </tr>
           ))}
@@ -420,9 +490,25 @@ export default function CotizacionGenerator() {
 
       <div style={S.grid}>
         {tipo === "cliente" && (<>
-          <Campo label="Descuento %"><input style={S.in} type="number" value={descPct} onChange={(e) => setDescPct(e.target.value)} /></Campo>
+          <Campo label="Descuento">
+            <select style={S.in} value={descTipo} onChange={(e) => setDescTipo(e.target.value)}>
+              <option value="none">Sin descuento</option>
+              <option value="pct">Porcentaje (%)</option>
+              <option value="monto">Monto fijo ({moneda})</option>
+            </select>
+          </Campo>
+          {descTipo === "pct" && <Campo label="Descuento %"><input style={S.in} type="number" min="0" value={descPct} onChange={(e) => setDescPct(e.target.value)} /></Campo>}
+          {descTipo === "monto" && <Campo label={`Descuento (${moneda})`}><input style={S.in} type="number" min="0" value={descMonto} onChange={(e) => setDescMonto(e.target.value)} /></Campo>}
           <Campo label={`IVA ${IVA_PCT}%`}><label style={{ display: "flex", gap: 6, alignItems: "center", paddingTop: 6 }}><input type="checkbox" checked={ivaOn} onChange={(e) => setIvaOn(e.target.checked)} /> incluir</label></Campo>
-          <Campo label={`Envio (${moneda})`}><input style={S.in} type="number" value={envio} onChange={(e) => setEnvio(e.target.value)} /></Campo>
+          <Campo label="Envio">
+            <select style={S.in} value={envioTipo} onChange={(e) => setEnvioTipo(e.target.value)}>
+              <option value="incluido">Incluido</option>
+              <option value="gratis">Gratis</option>
+              <option value="monto">Monto ({moneda})</option>
+              <option value="aparte">Se cotiza aparte</option>
+            </select>
+          </Campo>
+          {envioTipo === "monto" && <Campo label={`Envio (${moneda})`}><input style={S.in} type="number" min="0" value={envio} onChange={(e) => setEnvio(e.target.value)} /></Campo>}
         </>)}
         {tipo === "pedido" && (<>
           <Campo label="Shipping cost (USD)"><input style={S.in} type="number" value={envio} onChange={(e) => setEnvio(e.target.value)} /></Campo>
@@ -443,8 +529,9 @@ export default function CotizacionGenerator() {
 
       <div style={S.totBox}>
         <div>Subtotal: <b>{fmt(display.subtotal, moneda)}</b></div>
-        {tipo === "cliente" && display.descuento > 0 && <div>Descuento: -{fmt(display.descuento, moneda)}</div>}
+        {tipo === "cliente" && display.descuento > 0 && <div>{descTipo === "pct" ? `Descuento (${descPct}%)` : "Descuento por volumen"}: -{fmt(display.descuento, moneda)}</div>}
         {tipo === "cliente" && ivaOn && <div>IVA: {fmt(display.iva, moneda)}</div>}
+        {tipo === "cliente" && <div>Envio: {envioTipo === "monto" ? fmt(Number(envio) || 0, moneda) : envioTipo === "incluido" ? "Incluido" : envioTipo === "aparte" ? "Se cotiza aparte" : "Gratis"}</div>}
         <div style={S.totBig}>TOTAL: {fmt(display.total, moneda)}</div>
       </div>
 
