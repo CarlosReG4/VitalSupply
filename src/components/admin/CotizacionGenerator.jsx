@@ -23,13 +23,13 @@ const COL = {
 const COLS_BUSQUEDA = [COL.pk, COL.nombre, COL.competencia, COL.sku_sinok];
 
 const EMPRESA = {
-  nombre: "VitalSupply", rfc: "RFC: REGC0101064D9",
+  nombre: "VitalSupply", eslogan: "Sensores y cables compatibles para equipo medico",
   dir: "Torreon, Coahuila, Mexico", tel: "WhatsApp +52 871 782 1161",
-  web: "vitalsupply.site", email: "ventas@vitalsupply.site",
+  web: "vitalsupply.site", email: "sales.vitalsupplymx@gmail.com",
 };
 const PROVEEDOR = {
   nombre: "Shenzhen Sino-K Medical Technology Co., Ltd",
-  attn: "Attn: Emma Huang", email: "sales08@sino-k.com", paypal: "finance@sino-k.com",
+  attn: "Attn: Emma Huang", email: "sales08@sino-k.com", paypal: "sinok2026@163.com",
 };
 
 // Logo VitalSupply (incrustado)
@@ -47,7 +47,7 @@ const T = {
     punit: (m) => `P. Unit (${m})`, subtotal: "Subtotal", descuento: "Descuento",
     iva: "IVA", envio: "Envio", shipping: "Costo de envio", bank: "Cargo bancario",
     total: "TOTAL", validez: "Validez de la oferta", notas: "Notas:", condiciones: "Condiciones:",
-    condCliente: (m) => `Precios en ${m}. Productos compatibles / refacciones. Tiempo de entrega 10-15 dias habiles.\nPago: transferencia / PayPal / tarjeta. Cotizacion sujeta a disponibilidad.`,
+    condCliente: (m) => `Precios en ${m}. Productos compatibles / refacciones. Tiempo de entrega 10-15 dias habiles.\nGarantia de compatibilidad: cambio o devolucion si el producto no funciona con su equipo.\nPago: transferencia / PayPal / tarjeta. Cotizacion sujeta a disponibilidad.`,
     condPedido: "100% pago por adelantado. Envio por FedEx.",
     rfq: "SOLICITUD DE COTIZACION",
     condRFQ: "Favor de cotizar sus mejores precios de distribuidor + envio FedEx a Torreon, Mexico (CP 27294).",
@@ -59,7 +59,7 @@ const T = {
     punit: (m) => `Unit Price (${m})`, subtotal: "Subtotal", descuento: "Discount",
     iva: "Tax", envio: "Shipping", shipping: "Shipping cost", bank: "Bank charge",
     total: "TOTAL", validez: "Offer validity", notas: "Notes:", condiciones: "Terms:",
-    condCliente: (m) => `Prices in ${m}. Compatible / replacement accessories. Lead time 10-15 business days.\nPayment: wire transfer / PayPal / card. Quotation subject to availability.`,
+    condCliente: (m) => `Prices in ${m}. Compatible / replacement accessories. Lead time 10-15 business days.\nCompatibility guarantee: exchange or refund if the product does not work with your equipment.\nPayment: wire transfer / PayPal / card. Quotation subject to availability.`,
     condPedido: "100% payment in advance. Delivery by FedEx.",
     rfq: "REQUEST FOR QUOTATION",
     condRFQ: "Please quote your best distributor prices + FedEx shipping to Torreon, Mexico (ZIP 27294).",
@@ -134,6 +134,8 @@ async function construirPDF(cot) {
   }
   doc.setFont("helvetica", "bold"); doc.setFontSize(20); doc.setTextColor(...AZUL);
   doc.text("VitalSupply", textX, y + 6);
+  doc.setFont("helvetica", "normal"); doc.setFontSize(8); doc.setTextColor(...GRIS);
+  doc.text(EMPRESA.eslogan, textX, y + 18);
 
   doc.setFont("helvetica", "bold"); doc.setFontSize(16); doc.setTextColor(...AZUL);
   const titulo = cot.tipo === "pedido" ? (cot.sin_precios ? t.rfq : t.oc) : t.cot;
@@ -148,8 +150,8 @@ async function construirPDF(cot) {
     escribeBloque(doc, colDe, y, t.de, [EMPRESA.nombre, EMPRESA.dir, EMPRESA.tel, EMPRESA.email]);
     escribeBloque(doc, colPara, y, t.proveedor, [PROVEEDOR.nombre, cot.atencion || PROVEEDOR.attn, PROVEEDOR.email, `PayPal: ${PROVEEDOR.paypal}`]);
   } else {
-    escribeBloque(doc, colDe, y, t.de, [EMPRESA.nombre, EMPRESA.rfc, EMPRESA.dir, EMPRESA.tel, EMPRESA.web]);
-    escribeBloque(doc, colPara, y, t.cliente, [cot.destinatario || "_______________________", cot.atencion ? "Attn: " + cot.atencion : "", `${t.validez}: ${cot.validez || "15 dias"}`].filter(Boolean));
+    escribeBloque(doc, colDe, y, t.de, [EMPRESA.nombre, EMPRESA.dir, EMPRESA.tel, EMPRESA.email, EMPRESA.web]);
+    escribeBloque(doc, colPara, y, t.cliente, [cot.destinatario || "_______________________", cot.atencion ? "Attn: " + cot.atencion : "", cot.correo_cliente || "", `${t.validez}: ${cot.validez || "15 dias"}`].filter(Boolean));
   }
   y += 86;
 
@@ -220,14 +222,14 @@ async function construirPDF(cot) {
     if (Number(cot.envio) > 0) linea(t.envio, fmt(cot.envio, moneda));
   }
   if (!rfq) {
-    // regla separadora + total (sin encimar texto)
-    yt += 6;
-    doc.setDrawColor(...AZUL); doc.setLineWidth(1); doc.line(xL, yt, xV, yt);
-    yt += 18;
-    doc.setFont("helvetica", "bold"); doc.setFontSize(12); doc.setTextColor(...AZUL);
-    doc.text(`${t.total} ${moneda}`, xL, yt);
-    doc.text(fmt(total, moneda), xV, yt, { align: "right" });
-    yt += 22;
+    // barra de TOTAL resaltada
+    yt += 8;
+    const boxH = 26;
+    doc.setFillColor(...AZUL); doc.roundedRect(xL, yt, xV - xL, boxH, 4, 4, "F");
+    doc.setFont("helvetica", "bold"); doc.setFontSize(12); doc.setTextColor(255, 255, 255);
+    doc.text(`${t.total} ${moneda}`, xL + 12, yt + 17);
+    doc.text(fmt(total, moneda), xV - 12, yt + 17, { align: "right" });
+    yt += boxH + 16;
   } else {
     yt += 4;
   }
@@ -251,6 +253,7 @@ export default function CotizacionGenerator() {
   const [fecha, setFecha] = useState(hoy());
   const [destinatario, setDestinatario] = useState("");
   const [atencion, setAtencion] = useState("");
+  const [correoCliente, setCorreoCliente] = useState("");
   const [validez, setValidez] = useState("15 dias");
   const [notas, setNotas] = useState("");
 
@@ -309,7 +312,9 @@ export default function CotizacionGenerator() {
   const quitar = (key) => setItems((prev) => prev.filter((it) => it.key !== key));
 
   const cotActual = () => ({
-    tipo, idioma, folio: folio || null, fecha, destinatario, atencion, validez, moneda,
+    tipo, idioma, folio: folio || null, fecha, destinatario, atencion,
+    correo_cliente: tipo === "cliente" ? (correoCliente || null) : null,
+    validez, moneda,
     sin_precios: tipo === "pedido" && sinPrecios,
     descuento_pct: tipo === "cliente" ? Number(descPct) || 0 : 0,
     iva_pct: tipo === "cliente" && ivaOn ? IVA_PCT : 0,
@@ -358,6 +363,7 @@ export default function CotizacionGenerator() {
         <Campo label="Idioma del PDF"><select style={S.in} value={idioma} onChange={(e) => setIdioma(e.target.value)}><option value="es">Espanol</option><option value="en">English</option></select></Campo>
         <Campo label={tipo === "pedido" ? "Proveedor / Attn" : "Cliente"}><input style={S.in} value={destinatario} onChange={(e) => setDestinatario(e.target.value)} placeholder={tipo === "pedido" ? "Emma Huang" : "Nombre del cliente / hospital"} /></Campo>
         <Campo label="Atencion / contacto"><input style={S.in} value={atencion} onChange={(e) => setAtencion(e.target.value)} /></Campo>
+        {tipo === "cliente" && <Campo label="Correo del cliente"><input style={S.in} type="email" value={correoCliente} onChange={(e) => setCorreoCliente(e.target.value)} placeholder="cliente@correo.com" /></Campo>}
         {tipo === "cliente" && <Campo label="Validez"><input style={S.in} value={validez} onChange={(e) => setValidez(e.target.value)} /></Campo>}
         {tipo === "cliente" && (<Campo label="Moneda"><select style={S.in} value={monedaCliente} onChange={(e) => setMonedaCliente(e.target.value)}><option value="USD">USD (base)</option><option value="MXN">MXN (convertir)</option></select></Campo>)}
         {tipo === "cliente" && monedaCliente === "MXN" && <Campo label="Tipo de cambio (MXN/USD)"><input style={S.in} type="number" step="0.01" value={fx} onChange={(e) => setFx(e.target.value)} /></Campo>}

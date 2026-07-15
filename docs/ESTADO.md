@@ -3,6 +3,11 @@
 > Documento para retomar el trabajo fácilmente (incluso desde el celular en `claude.ai/code`).
 > Última actualización: 2026-07-15.
 
+## Preferencias fijas (aplicar siempre)
+- **Correo de la empresa en cotizaciones/PO:** usar SIEMPRE en automático `sales.vitalsupplymx@gmail.com`
+  (no `ventas@vitalsupply.site`, no pedirlo cada vez). Ya está fijo en `CotizacionGenerator.jsx` (`EMPRESA.email`).
+- **No incluir el RFC** en las cotizaciones a cliente.
+
 ## Datos del proyecto
 - **Repo:** `CarlosReG4/VitalSupply` (rama principal: `main`)
 - **Producción:** https://vitalsupply.site (deploy automático desde `main` vía Vercel)
