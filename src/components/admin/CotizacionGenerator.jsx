@@ -45,7 +45,7 @@ const T = {
     de: "DE:", cliente: "CLIENTE:", proveedor: "PARA (PROVEEDOR):",
     img: "Imagen", desc: "Descripcion", cant: "Cant", importe: "Importe", totalCol: "Total",
     punit: (m) => `P. Unit (${m})`, subtotal: "Subtotal", descuento: "Descuento",
-    iva: "IVA", envio: "Envio", shipping: "Costo de envio", bank: "Cargo bancario",
+    iva: "IVA", envio: "Envio", envioGratis: "Gratis", shipping: "Costo de envio", bank: "Cargo bancario",
     total: "TOTAL", validez: "Validez de la oferta", notas: "Notas:", condiciones: "Condiciones:",
     condCliente: (m) => `Precios en ${m}. Productos compatibles / refacciones. Tiempo de entrega 10-15 dias habiles.\nGarantia de compatibilidad: cambio o devolucion si el producto no funciona con su equipo.\nPago: transferencia / PayPal / tarjeta. Cotizacion sujeta a disponibilidad.`,
     condPedido: "100% pago por adelantado. Envio por FedEx.",
@@ -57,7 +57,7 @@ const T = {
     de: "FROM:", cliente: "CLIENT:", proveedor: "TO (SUPPLIER):",
     img: "Image", desc: "Description", cant: "Qty", importe: "Amount", totalCol: "Total",
     punit: (m) => `Unit Price (${m})`, subtotal: "Subtotal", descuento: "Discount",
-    iva: "Tax", envio: "Shipping", shipping: "Shipping cost", bank: "Bank charge",
+    iva: "Tax", envio: "Shipping", envioGratis: "Free", shipping: "Shipping cost", bank: "Bank charge",
     total: "TOTAL", validez: "Offer validity", notas: "Notes:", condiciones: "Terms:",
     condCliente: (m) => `Prices in ${m}. Compatible / replacement accessories. Lead time 10-15 business days.\nCompatibility guarantee: exchange or refund if the product does not work with your equipment.\nPayment: wire transfer / PayPal / card. Quotation subject to availability.`,
     condPedido: "100% payment in advance. Delivery by FedEx.",
@@ -219,7 +219,7 @@ async function construirPDF(cot) {
     linea(t.subtotal, fmt(subtotal, moneda));
     if (descuento > 0) linea(`${t.descuento} (${cot.descuento_pct}%)`, "-" + fmt(descuento, moneda));
     if (Number(cot.iva_pct) > 0) linea(`${t.iva} (${cot.iva_pct}%)`, fmt(iva, moneda));
-    if (Number(cot.envio) > 0) linea(t.envio, fmt(cot.envio, moneda));
+    linea(t.envio, Number(cot.envio) > 0 ? fmt(cot.envio, moneda) : t.envioGratis);
   }
   if (!rfq) {
     // barra de TOTAL resaltada
