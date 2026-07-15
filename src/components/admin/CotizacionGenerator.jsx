@@ -151,7 +151,7 @@ async function construirPDF(cot) {
     escribeBloque(doc, colPara, y, t.proveedor, [PROVEEDOR.nombre, cot.atencion || PROVEEDOR.attn, PROVEEDOR.email, `PayPal: ${PROVEEDOR.paypal}`]);
   } else {
     escribeBloque(doc, colDe, y, t.de, [EMPRESA.nombre, EMPRESA.dir, EMPRESA.tel, EMPRESA.email, EMPRESA.web]);
-    escribeBloque(doc, colPara, y, t.cliente, [cot.destinatario || "_______________________", cot.atencion ? "Attn: " + cot.atencion : "", `${t.validez}: ${cot.validez || "15 dias"}`].filter(Boolean));
+    escribeBloque(doc, colPara, y, t.cliente, [cot.destinatario || "_______________________", cot.atencion ? "Attn: " + cot.atencion : "", cot.correo_cliente || "", `${t.validez}: ${cot.validez || "15 dias"}`].filter(Boolean));
   }
   y += 86;
 
@@ -253,6 +253,7 @@ export default function CotizacionGenerator() {
   const [fecha, setFecha] = useState(hoy());
   const [destinatario, setDestinatario] = useState("");
   const [atencion, setAtencion] = useState("");
+  const [correoCliente, setCorreoCliente] = useState("");
   const [validez, setValidez] = useState("15 dias");
   const [notas, setNotas] = useState("");
 
@@ -311,7 +312,9 @@ export default function CotizacionGenerator() {
   const quitar = (key) => setItems((prev) => prev.filter((it) => it.key !== key));
 
   const cotActual = () => ({
-    tipo, idioma, folio: folio || null, fecha, destinatario, atencion, validez, moneda,
+    tipo, idioma, folio: folio || null, fecha, destinatario, atencion,
+    correo_cliente: tipo === "cliente" ? (correoCliente || null) : null,
+    validez, moneda,
     sin_precios: tipo === "pedido" && sinPrecios,
     descuento_pct: tipo === "cliente" ? Number(descPct) || 0 : 0,
     iva_pct: tipo === "cliente" && ivaOn ? IVA_PCT : 0,
@@ -360,6 +363,7 @@ export default function CotizacionGenerator() {
         <Campo label="Idioma del PDF"><select style={S.in} value={idioma} onChange={(e) => setIdioma(e.target.value)}><option value="es">Espanol</option><option value="en">English</option></select></Campo>
         <Campo label={tipo === "pedido" ? "Proveedor / Attn" : "Cliente"}><input style={S.in} value={destinatario} onChange={(e) => setDestinatario(e.target.value)} placeholder={tipo === "pedido" ? "Emma Huang" : "Nombre del cliente / hospital"} /></Campo>
         <Campo label="Atencion / contacto"><input style={S.in} value={atencion} onChange={(e) => setAtencion(e.target.value)} /></Campo>
+        {tipo === "cliente" && <Campo label="Correo del cliente"><input style={S.in} type="email" value={correoCliente} onChange={(e) => setCorreoCliente(e.target.value)} placeholder="cliente@correo.com" /></Campo>}
         {tipo === "cliente" && <Campo label="Validez"><input style={S.in} value={validez} onChange={(e) => setValidez(e.target.value)} /></Campo>}
         {tipo === "cliente" && (<Campo label="Moneda"><select style={S.in} value={monedaCliente} onChange={(e) => setMonedaCliente(e.target.value)}><option value="USD">USD (base)</option><option value="MXN">MXN (convertir)</option></select></Campo>)}
         {tipo === "cliente" && monedaCliente === "MXN" && <Campo label="Tipo de cambio (MXN/USD)"><input style={S.in} type="number" step="0.01" value={fx} onChange={(e) => setFx(e.target.value)} /></Campo>}
