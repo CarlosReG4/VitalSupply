@@ -26,14 +26,16 @@ const ProductoDetalle = () => {
   const { producto, variantes, loading, error } = useProducto(skuBusqueda); 
   const [cantidad, setCantidad] = useState(1);
   const [imagenActiva, setImagenActiva] = useState(null);
+  // Variante seleccionada in-situ (uno de los hermanos por url, o el base).
+  const [varianteSel, setVarianteSel] = useState(null);
   const agregarAlCarrito = useCartStore((state) => state.agregarAlCarrito);
 
-  // Tarea A: la imagen principal SIEMPRE corresponde al SKU cargado.
-  // Se sincroniza con la identidad del producto (mi_sku), no con el índice 0,
-  // para que al navegar entre variantes o entrar por URL directa la foto
-  // activa sea la del SKU actual (con fallback a /sin-imagen.svg si no tiene).
+  // Al cargar un SKU nuevo: reset de cantidad, variante = base, imagen = base.
+  // La imagen principal se sincroniza con la identidad del producto (mi_sku),
+  // con fallback a /sin-imagen.svg si no tiene.
   useEffect(() => {
     setCantidad(1);
+    setVarianteSel(producto || null);
     setImagenActiva(producto?.imagen_url || null);
   }, [producto?.mi_sku]);
 
@@ -53,24 +55,30 @@ const ProductoDetalle = () => {
     </div>
   );
 
-  // Normalizamos las tablas
-  const compatibilityList = normalizarJsonb(producto.compatibility);
-  const especificacionesList = normalizarJsonb(producto.especificaciones);
-  const oemcrossList = normalizarJsonb(producto.oemcross);
+  // Producto mostrado: variante seleccionada in-situ (o el base al cargar).
+  // Los hermanos por url ya traen mi_sku, precio, imagen_url y demás columnas,
+  // así el cambio de variante actualiza imagen + número de parte + precio +
+  // carrito SIN navegar. Fallback: si no hay variante, se usa el base.
+  const prod = varianteSel || producto;
 
-  // Variantes
+  // Normalizamos las tablas (de la variante mostrada)
+  const compatibilityList = normalizarJsonb(prod.compatibility);
+  const especificacionesList = normalizarJsonb(prod.especificaciones);
+  const oemcrossList = normalizarJsonb(prod.oemcross);
+
+  // Variantes (familia completa: base + hermanos por url)
   const todasLasOpciones = [producto, ...(variantes || [])].filter(
     (v, i, a) => v && a.findIndex(t => t?.mi_sku === v?.mi_sku) === i
   ).sort((a, b) => (a?.tipo || '').localeCompare(b?.tipo || ''));
 
-  // Galería de imágenes
+  // Galería de imágenes (de la variante mostrada)
   const galeriaImagenes = [
-    producto?.imagen_url,
-    producto?.imagen_url_2,
-    producto?.imagen_url_3,
-    producto?.imagen_url_4,
-    producto?.imagen_url_5,
-    producto?.imagen_url_6,
+    prod?.imagen_url,
+    prod?.imagen_url_2,
+    prod?.imagen_url_3,
+    prod?.imagen_url_4,
+    prod?.imagen_url_5,
+    prod?.imagen_url_6,
   ].filter(Boolean);
 
   return (
@@ -96,7 +104,7 @@ const ProductoDetalle = () => {
              <span>›</span>
              <Link to={`/categorias?tipo=${producto.categoria}`} className="hover:text-blue-600">{producto.categoria}</Link>
              <span>›</span>
-             <span className="text-gray-400">{nombreProducto(producto, i18n.language)}</span>
+             <span className="text-gray-400">{nombreProducto(prod, i18n.language)}</span>
           </nav>
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-16">
@@ -108,7 +116,7 @@ const ProductoDetalle = () => {
                   src={imagenActiva || '/sin-imagen.svg'}
                   onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = '/sin-imagen.svg'; }}
                   
-                  alt={nombreProducto(producto, i18n.language)}
+                  alt={nombreProducto(prod, i18n.language)}
                   className="w-full h-full object-contain mix-blend-multiply transition-all duration-300"
                 />
               </div>
@@ -143,7 +151,7 @@ const ProductoDetalle = () => {
             {/* COLUMNA 2: TÍTULO Y VARIANTES */}
             <div className="lg:col-span-4 flex flex-col pt-2">
               <h1 className="text-2xl font-bold text-black leading-tight mb-2">
-                {nombreProducto(producto, i18n.language)}
+                {nombreProducto(prod, i18n.language)}
               </h1>
               
               <div className="flex text-yellow-400 text-xs mb-4">
@@ -151,7 +159,7 @@ const ProductoDetalle = () => {
               </div>
               
               <div className="text-xs text-gray-500 mb-6">
-                {t('catalog.partNumber')} <span className="font-bold text-black">{producto.mi_sku}</span>
+                {t('catalog.partNumber')} <span className="font-bold text-black">{prod.mi_sku}</span>
               </div>
 
               {/* Tarea B: selector universal de variantes (por grupo_variantes) */}
@@ -159,17 +167,24 @@ const ProductoDetalle = () => {
 
               {/* Bloque de opciones anterior (por url); se oculta si hay grupo_variantes
                   para no duplicar selectores. */}
-              {!producto.grupo_variantes && todasLasOpciones.length > 0 && (
+              {!producto.grupo_variantes && todasLasOpciones.length > 1 && (
                 <div className="grid grid-cols-2 gap-y-4 gap-x-2">
                   {todasLasOpciones.map((v, i) => {
-                    const isActive = producto.mi_sku === v.mi_sku;
+                    const isActive = prod.mi_sku === v.mi_sku;
                     return (
-                      <Link
+                      <button
                         key={v.mi_sku}
-                        to={`/producto/${v.mi_sku}`} 
-                        className={`p-3 border-[3px] flex flex-col ${
-                          isActive 
-                            ? 'border-yellow-400 bg-white' 
+                        type="button"
+                        // In-situ: cambia imagen + número de parte + precio + carrito
+                        // a esta variante, sin navegar.
+                        onClick={() => {
+                          setVarianteSel(v);
+                          setImagenActiva(v.imagen_url || producto.imagen_url);
+                        }}
+                        aria-pressed={isActive}
+                        className={`text-left p-3 border-[3px] flex flex-col ${
+                          isActive
+                            ? 'border-yellow-400 bg-white'
                             : 'border-transparent bg-white hover:border-gray-100'
                         }`}
                       >
@@ -179,7 +194,7 @@ const ProductoDetalle = () => {
                         <span className="text-[11px] font-bold text-gray-900">
                           ${Number(v.precio_venta_sugerido ?? v.precio).toLocaleString('en-US', { minimumFractionDigits: 0 })}
                         </span>
-                      </Link>
+                      </button>
                     );
                   })}
                 </div>
@@ -191,7 +206,7 @@ const ProductoDetalle = () => {
               <div className="flex justify-between items-start mb-6">
                 <span className="text-xs font-bold text-black mt-1">{t('product.price')}:</span>
                 <span className="text-2xl font-bold text-yellow-500">
-                  ${Number(producto.precio_venta_sugerido ?? producto.precio).toLocaleString('en-US', { minimumFractionDigits: 0 })}
+                  ${Number(prod.precio_venta_sugerido ?? prod.precio).toLocaleString('en-US', { minimumFractionDigits: 0 })}
                 </span>
               </div>
 
@@ -232,7 +247,7 @@ const ProductoDetalle = () => {
               </div>
 
               <button 
-                onClick={() => agregarAlCarrito({ ...producto, cantidad })}
+                onClick={() => agregarAlCarrito({ ...prod, cantidad })}
                 className="w-full bg-[#8ced00] hover:bg-[#7bc800] text-white py-3 font-bold transition-colors mb-8 text-sm shadow-sm"
               >
                 {t('product.addToCart')}

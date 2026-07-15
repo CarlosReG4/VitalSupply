@@ -32,9 +32,12 @@ export const useProducto = (sku) => {
           if (productoData.url) {
             // IMPORTANTE: incluimos precio_venta_sugerido para que las variantes
             // muestren el precio correcto (fix del bug de precios).
+            // '*' (solo en detalle) para que cada variante hermana traiga todas
+            // las columnas: al seleccionar una variante in-situ podemos fijar su
+            // mi_sku/precio/imagen/nombre y agregar el SKU correcto al carrito.
             const { data: variantesData, error: variantesError } = await supabase
               .from('productos_medicos_v2')
-              .select('mi_sku, nombre, precio, precio_venta_sugerido, precio_ref_decys, precio_ref_cs, imagen_url, tipo')
+              .select('*')
               .eq('url', productoData.url)
               .neq('mi_sku', sku);
 
