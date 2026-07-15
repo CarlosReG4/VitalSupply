@@ -6,7 +6,6 @@ import { useProducto } from '../hooks/useProducto';
 import { useCartStore } from '../store/cartStore';
 import { nombreProducto } from '../utils/helpers';
 import VariantSelector from '../components/producto/VariantSelector';
-import VariantImageSelector from '../components/producto/VariantImageSelector';
 
 // Helper: normaliza el campo JSONB (puede venir como array, objeto o null).
 function normalizarJsonb(campo) {
@@ -139,13 +138,6 @@ const ProductoDetalle = () => {
                    ))}
                 </div>
               )}
-
-              {/* Cambia la imagen principal según la variante (variantes_imagenes) */}
-              <VariantImageSelector
-                producto={producto}
-                imagenActiva={imagenActiva}
-                setImagenActiva={setImagenActiva}
-              />
             </div>
 
             {/* COLUMNA 2: TÍTULO Y VARIANTES */}
