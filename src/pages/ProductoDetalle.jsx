@@ -205,9 +205,27 @@ const ProductoDetalle = () => {
             <div className="lg:col-span-3 pt-2">
               <div className="flex justify-between items-start mb-6">
                 <span className="text-xs font-bold text-black mt-1">{t('product.price')}:</span>
-                <span className="text-2xl font-bold text-yellow-500">
-                  ${Number(prod.precio_venta_sugerido ?? prod.precio).toLocaleString('en-US', { minimumFractionDigits: 0 })}
-                </span>
+                {prod.en_promocion && Number(prod.precio_promocion) > 0 ? (
+                  <span className="flex flex-col items-end leading-tight">
+                    <span className="flex items-center gap-2">
+                      <span className="text-2xl font-bold text-yellow-500">
+                        ${Number(prod.precio_promocion).toLocaleString('en-US', { minimumFractionDigits: 0 })}
+                      </span>
+                      {prod.porcentaje_descuento ? (
+                        <span className="text-[11px] font-bold bg-red-100 text-red-600 px-1.5 py-0.5 rounded">
+                          -{prod.porcentaje_descuento}%
+                        </span>
+                      ) : null}
+                    </span>
+                    <span className="text-sm text-gray-400 line-through">
+                      ${Number(prod.precio_venta_sugerido ?? prod.precio).toLocaleString('en-US', { minimumFractionDigits: 0 })}
+                    </span>
+                  </span>
+                ) : (
+                  <span className="text-2xl font-bold text-yellow-500">
+                    ${Number(prod.precio_venta_sugerido ?? prod.precio).toLocaleString('en-US', { minimumFractionDigits: 0 })}
+                  </span>
+                )}
               </div>
 
               <div className="flex justify-between items-center mb-4">

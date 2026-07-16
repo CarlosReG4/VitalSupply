@@ -2,11 +2,14 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
-// Precio final que se cobra: aseguramos que sea un número válido mayor a 0
+// Precio final que se cobra: si el producto está en promoción usamos el
+// precio_promocion; si no, el precio_venta_sugerido (con fallback a precio).
 const precioFinal = (producto) => {
+  const promo = parseFloat(producto.precio_promocion);
+  if (producto.en_promocion && promo > 0) return promo;
   const precioSugerido = parseFloat(producto.precio_venta_sugerido);
-  return precioSugerido > 0 
-    ? precioSugerido 
+  return precioSugerido > 0
+    ? precioSugerido
     : (parseFloat(producto.precio) || 0);
 };
 
