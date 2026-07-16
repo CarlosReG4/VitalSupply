@@ -100,6 +100,16 @@ function agrupar(items) {
   (items || []).forEach((it) => { const g = it.grupo || ""; if (!map.has(g)) { map.set(g, []); orden.push(g); } map.get(g).push(it); });
   return orden.map((g) => ({ grupo: g, lista: map.get(g) }));
 }
+// PEDIDO: consolida lineas con el mismo P/N de Sino-K (suma cantidades) para no repetir el mismo item en la OC.
+function consolidarPorSinok(items) {
+  const orden = [], map = new Map();
+  (items || []).forEach((it) => {
+    const k = it.sinok ? `SINOK:${it.sinok}` : `SKU:${it.sku}:${orden.length}`; // sin P/N Sino-K: no se consolida
+    if (map.has(k)) { const acc = map.get(k); acc.qty = (Number(acc.qty) || 0) + (Number(it.qty) || 0); }
+    else { const copia = { ...it, qty: Number(it.qty) || 0 }; map.set(k, copia); orden.push(copia); }
+  });
+  return orden;
+}
 function escribeBloque(doc, x, y, titulo, lineas) {
   doc.setFont("helvetica", "bold"); doc.setFontSize(8.5); doc.setTextColor(30, 58, 95); doc.text(titulo, x, y);
   doc.setFont("helvetica", "normal"); doc.setFontSize(8.5); doc.setTextColor(40, 40, 40);
@@ -135,8 +145,11 @@ async function construirPDF(cot) {
   const moneda = cot.moneda || "USD";
   const { subtotal, descuento, iva, total } = totales(cot);
 
+  // PEDIDO: consolidar por P/N de Sino-K (mismo producto físico). CLIENTE: se dejan tal cual.
+  const itemsDoc = cot.tipo === "pedido" ? consolidarPorSinok(cot.items) : (cot.items || []);
+
   // precargar imagenes de producto
-  const imgs = await Promise.all((cot.items || []).map((it) => cargarImagen(it.imagen)));
+  const imgs = await Promise.all(itemsDoc.map((it) => cargarImagen(it.imagen)));
 
   const doc = new jsPDF({ unit: "pt", format: "a4" });
   const W = doc.internal.pageSize.getWidth(), M = 40;
@@ -177,10 +190,10 @@ async function construirPDF(cot) {
     ? [["#", t.img, refHead, t.desc, t.cant]]
     : [["#", t.img, refHead, t.desc, t.cant, t.punit(moneda), cot.tipo === "pedido" ? t.totalCol : t.importe]];
   const body = [], rowImgs = []; let n = 0;
-  agrupar(cot.items).forEach(({ grupo, lista }) => {
+  agrupar(itemsDoc).forEach(({ grupo, lista }) => {
     if (grupo) { body.push([{ content: grupo, colSpan: nCols, styles: { fontStyle: "bold", fillColor: AZUL_CLARO, textColor: AZUL } }]); rowImgs.push(null); }
     lista.forEach((it) => {
-      const idx = (cot.items || []).indexOf(it);
+      const idx = itemsDoc.indexOf(it);
       const imp = (Number(it.qty) || 0) * (Number(it.precio) || 0);
       const ref = cot.tipo === "pedido" ? (it.sinok || "-") : (it.sku || "-");
       body.push(rfq
@@ -344,8 +357,17 @@ export default function CotizacionGenerator() {
         // PEDIDO -> vista con costos reales de proforma (nunca expone precio de venta)
         // CLIENTE -> catalogo completo con precio de venta
         const fuente = tipo === "pedido" ? VISTA_PROVEEDOR : TABLA;
-        const { data, error } = await supabase.from(fuente).select("*").or(orFilter).limit(15);
-        if (error) throw error; setRes(data || []);
+        const { data, error } = await supabase.from(fuente).select("*").or(orFilter).limit(30);
+        if (error) throw error;
+        // Dedup por P/N de Sino-K: mismo sku_sinok = mismo producto fisico -> se muestra 1 solo (evita "repetidos").
+        const vistos = new Set();
+        const dedup = (data || []).filter((p) => {
+          const s = p[COL.sku_sinok];
+          if (!s) return true;
+          if (vistos.has(s)) return false;
+          vistos.add(s); return true;
+        }).slice(0, 15);
+        setRes(dedup);
       } catch (e) { setError("Error en busqueda: " + (e.message || e)); setRes([]); }
       finally { setBuscando(false); }
     }, 300);
