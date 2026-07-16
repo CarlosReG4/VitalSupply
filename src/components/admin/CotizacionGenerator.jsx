@@ -381,7 +381,9 @@ export default function CotizacionGenerator() {
     //          con la sugerencia precio_usd * TC redondeada; el usuario puede sobreescribirlo
     //          (p. ej. precio de canal 799) antes de generar el PDF.
     const t = Number(fx) || 18;
-    const precioUsd = Number(p[COL.precio]) || 0;
+    // CLIENTE: usar el MISMO precio que ve el cliente en la tienda (precio_venta_sugerido con fallback a precio),
+    //          no la columna `precio` cruda (que puede traer valores viejos/inflados).
+    const precioUsd = Number(p.precio_venta_sugerido) > 0 ? Number(p.precio_venta_sugerido) : (Number(p[COL.precio]) || 0);
     const precioLinea = tipo === "pedido"
       ? (Number(p[COL.costo_proforma]) || 0)
       : (monedaCliente === "MXN" ? Math.round(precioUsd * t) : precioUsd);
@@ -476,7 +478,7 @@ export default function CotizacionGenerator() {
                     ? (p[COL.costo_confirmado]
                         ? fmt(p[COL.costo_proforma], "USD") + " proforma ✓"
                         : "sin costo confirmado")
-                    : fmt(p[COL.precio], "USD")}
+                    : fmt(Number(p.precio_venta_sugerido) > 0 ? p.precio_venta_sugerido : p[COL.precio], "USD")}
                 </span>
               </div>
             ))}
