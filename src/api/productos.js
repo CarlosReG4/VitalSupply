@@ -85,7 +85,8 @@ export const buscarProductos = async (terminoBusqueda = '', pagina = 1, limite =
 
   let query = supabase
     .from('productos_medicos_v2')
-    .select('*', { count: 'exact' });
+    .select('*', { count: 'exact' })
+    .eq('tiene_proveedor', true);
 
   if (busquedaLimpia) {
     query = query.or(`nombre.ilike.%${busquedaLimpia}%,mi_sku.ilike.%${busquedaLimpia}%,sku_competencia.ilike.%${busquedaLimpia}%`);

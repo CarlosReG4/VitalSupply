@@ -35,10 +35,28 @@ export default function CardProducto({ producto, agregarAlCarrito }) {
       </Link>
       
       <div className="flex items-center justify-between mt-auto pt-4 border-t border-slate-50">
-        <span className="text-xl font-black text-slate-900 tracking-tight">
-          {formatearPrecio(producto.precio)}
-        </span>
-        <button 
+        {producto.en_promocion && Number(producto.precio_promocion) > 0 ? (
+          <div className="flex flex-col leading-tight">
+            <div className="flex items-center gap-2">
+              <span className="text-xl font-black text-slate-900 tracking-tight">
+                {formatearPrecio(producto.precio_promocion)}
+              </span>
+              {producto.porcentaje_descuento ? (
+                <span className="text-[10px] font-bold bg-red-100 text-red-600 px-1.5 py-0.5 rounded">
+                  -{producto.porcentaje_descuento}%
+                </span>
+              ) : null}
+            </div>
+            <span className="text-xs text-slate-400 line-through">
+              {formatearPrecio(producto.precio)}
+            </span>
+          </div>
+        ) : (
+          <span className="text-xl font-black text-slate-900 tracking-tight">
+            {formatearPrecio(producto.precio)}
+          </span>
+        )}
+        <button
           onClick={() => agregarAlCarrito(producto)}
           className="bg-slate-900 text-white p-2.5 rounded-lg hover:bg-blue-600 transition-colors shadow-sm"
           title={t('card.addToCart')}
