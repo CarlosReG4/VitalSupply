@@ -26,6 +26,14 @@
 
 ## Estado actual (todo pusheado)
 Últimos trabajos ya en producción:
+- **Módulo de Ventas (panel admin):** sección "Ventas" en el sidebar. Alta manual de ventas (cliente + líneas
+  con buscador de SKU que muestra stock). Al registrar, el inventario se **descuenta automáticamente** vía
+  trigger en la BD (`ventas_items` → movimiento `tipo='venta'`), así que también funciona si registro la venta
+  por chat/SQL con la RPC `registrar_venta(p_cliente, p_notas, p_items jsonb)`. Si se vende sin stock, el stock
+  queda negativo y el faltante sale en el apartado **"Por surtir"** (para pedir a Sino-K). Borrar una venta
+  revierte su inventario (cascade `ventas` → `ventas_items` → `inventario_movimientos.venta_item_id`).
+  Tablas `ventas` y `ventas_items` (RLS admin-only), vista `v_ventas_resumen`.
+  Archivos: `src/components/admin/Ventas.jsx`, `src/pages/admin/AdminDashboard.jsx`.
 - **Módulo de Inventario (panel admin):** nueva sección "Inventario" en el sidebar. Existencias por
   `sku_sinok` sobre TODO el catálogo (vista `v_inventario_stock` con `security_invoker`), agrupadas por
   categoría en acordeones con contadores (con stock / SKUs / piezas), toggle "Solo con stock", buscador
