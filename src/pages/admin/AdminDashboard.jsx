@@ -6,6 +6,7 @@ import FormularioProducto from '../../components/admin/FormularioProducto';
 import TablaPedidos from '../../components/admin/TablaPedidos';
 import GestorPromociones from '../../components/admin/GestorPromociones'
 import CotizacionGenerator from '../../components/admin/CotizacionGenerator';
+import Inventario from '../../components/admin/Inventario';
 
 export default function AdminDashboard() {
   const { logout, usuario } = useAuth();
@@ -94,6 +95,23 @@ export default function AdminDashboard() {
           >
             <i className="fas fa-tags text-base w-5 text-center"></i>
             Promociones Especiales
+          </button>
+
+          {/* NUEVO: INVENTARIO */}
+          <button
+            onClick={() => {
+              setSeccion('inventario');
+              setEnCreacion(false);
+              setProductoEditar(null);
+            }}
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-semibold transition-colors ${
+              seccion === 'inventario'
+                ? 'bg-blue-600 text-white shadow-md'
+                : 'hover:bg-slate-800 hover:text-white'
+            }`}
+          >
+            <i className="fas fa-warehouse text-base w-5 text-center"></i>
+            Inventario
           </button>
 
           {/* NUEVO: COTIZACIONES */}
@@ -221,6 +239,17 @@ export default function AdminDashboard() {
                 <p className="text-gray-500 text-sm">Gestiona descuentos, ofertas por porcentaje y precios especiales para la tienda.</p>
               </div>
               <GestorPromociones />
+            </div>
+          )}
+
+          {/* NUEVA SECCIÓN: INVENTARIO */}
+          {seccion === 'inventario' && (
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 animate-fade-in">
+              <div className="mb-6">
+                <h2 className="text-2xl font-bold text-slate-800">Inventario</h2>
+                <p className="text-gray-500 text-sm">Existencias por SKU de Sino-K sobre todo el catálogo, agrupadas por categoría. Registra entradas, ventas y ajustes.</p>
+              </div>
+              <Inventario />
             </div>
           )}
 

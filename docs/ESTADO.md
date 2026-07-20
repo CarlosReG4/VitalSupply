@@ -1,7 +1,17 @@
 # Estado del proyecto — VitalSupply
 
 > Documento para retomar el trabajo fácilmente (incluso desde el celular en `claude.ai/code`).
-> Última actualización: 2026-07-15.
+> Última actualización: 2026-07-20.
+
+## Fila de pendientes (siguiente a atacar)
+- **Cloudflare / DDoS:** falta configurar Cloudflare frente al dominio (proxy naranja, SSL Full-Strict,
+  "Always Use HTTPS", reglas de rate-limit/Bot Fight Mode) para mitigar DDoS. Ya se preparó la guía; queda
+  ejecutarla en el panel de Cloudflare + apuntar los NS del dominio.
+- **PR #4 (headers de seguridad `vercel.json`):** HSTS, CSP, X-Frame-Options, nosniff, Referrer/Permissions-Policy.
+  Ya está commiteado en su rama; falta probar el preview de Vercel y hacer merge a `main`.
+- **Imágenes MED-6840 (SP9305AL):** subir `SP9305AL_img1.jpg` y `SP9305AL_img2.jpg` al bucket
+  `imagenes_productos/sinok-spo2/` en Supabase Storage y apuntar `imagen_url`. Requiere subir el archivo
+  desde el panel de Supabase (no se puede desde el entorno web sin service role key). Respaldo en `_backup_fix_manual`.
 
 ## Preferencias fijas (aplicar siempre)
 - **Correo de la empresa en cotizaciones/PO:** usar SIEMPRE en automático `sales.vitalsupplymx@gmail.com`
@@ -16,6 +26,12 @@
 
 ## Estado actual (todo pusheado)
 Últimos trabajos ya en producción:
+- **Módulo de Inventario (panel admin):** nueva sección "Inventario" en el sidebar. Existencias por
+  `sku_sinok` sobre TODO el catálogo (vista `v_inventario_stock` con `security_invoker`), agrupadas por
+  categoría en acordeones con contadores (con stock / SKUs / piezas), toggle "Solo con stock", buscador
+  global, alta de movimientos (entrada/venta/ajuste → tabla `inventario_movimientos`), historial por SKU
+  y resalte de bajo stock (≤2, solo con movimientos). RPC `inventario_resumen()` para totales por categoría.
+  Archivos: `src/components/admin/Inventario.jsx`, `src/pages/admin/AdminDashboard.jsx`.
 - **Selector de variantes v2 (in-situ):** en el detalle de producto, tocar una variante cambia
   imagen + número de parte + precio + SKU del carrito **sin navegar**. Fuente: hermanos por `url`.
   Archivos: `src/pages/ProductoDetalle.jsx`, `src/hooks/useProducto.js`, `src/components/producto/VariantSelector.jsx`.
