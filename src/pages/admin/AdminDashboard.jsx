@@ -7,6 +7,7 @@ import TablaPedidos from '../../components/admin/TablaPedidos';
 import GestorPromociones from '../../components/admin/GestorPromociones'
 import CotizacionGenerator from '../../components/admin/CotizacionGenerator';
 import Inventario from '../../components/admin/Inventario';
+import Ventas from '../../components/admin/Ventas';
 
 export default function AdminDashboard() {
   const { logout, usuario } = useAuth();
@@ -112,6 +113,23 @@ export default function AdminDashboard() {
           >
             <i className="fas fa-warehouse text-base w-5 text-center"></i>
             Inventario
+          </button>
+
+          {/* NUEVO: VENTAS */}
+          <button
+            onClick={() => {
+              setSeccion('ventas');
+              setEnCreacion(false);
+              setProductoEditar(null);
+            }}
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-semibold transition-colors ${
+              seccion === 'ventas'
+                ? 'bg-blue-600 text-white shadow-md'
+                : 'hover:bg-slate-800 hover:text-white'
+            }`}
+          >
+            <i className="fas fa-cash-register text-base w-5 text-center"></i>
+            Ventas
           </button>
 
           {/* NUEVO: COTIZACIONES */}
@@ -250,6 +268,17 @@ export default function AdminDashboard() {
                 <p className="text-gray-500 text-sm">Existencias por SKU de Sino-K sobre todo el catálogo, agrupadas por categoría. Registra entradas, ventas y ajustes.</p>
               </div>
               <Inventario />
+            </div>
+          )}
+
+          {/* NUEVA SECCIÓN: VENTAS */}
+          {seccion === 'ventas' && (
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 animate-fade-in">
+              <div className="mb-6">
+                <h2 className="text-2xl font-bold text-slate-800">Ventas</h2>
+                <p className="text-gray-500 text-sm">Registra ventas de forma manual; el inventario se descuenta automáticamente. Lo que se venda sin stock aparece en "Por surtir" para pedir a Sino-K.</p>
+              </div>
+              <Ventas />
             </div>
           )}
 
