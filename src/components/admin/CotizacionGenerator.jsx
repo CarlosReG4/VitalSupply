@@ -205,8 +205,9 @@ async function construirPDF(cot) {
 
   autoTable(doc, {
     head, body, startY: y, margin: { left: M, right: M },
-    styles: { fontSize: 8.5, cellPadding: 4, valign: "middle", minCellHeight: 116 },
+    styles: { fontSize: 8.5, cellPadding: 4, valign: "middle" },
     headStyles: { fillColor: AZUL, textColor: 255, fontStyle: "bold" },
+    bodyStyles: { minCellHeight: 116 },
     columnStyles: rfq
       ? {
           0: { cellWidth: 24, halign: "center" }, 1: { cellWidth: 140, halign: "center" },
@@ -236,7 +237,10 @@ async function construirPDF(cot) {
     },
   });
 
+  const pageH = doc.internal.pageSize.getHeight();
   let yt = doc.lastAutoTable.finalY + 16;
+  // Si los totales + condiciones no caben, pásalos a una página nueva (evita encimarse con el pie).
+  if (yt > pageH - 175) { doc.addPage(); yt = 54; }
   const xL = W - M - 200, xV = W - M;
   const linea = (lab, val) => {
     doc.setFont("helvetica", "normal"); doc.setFontSize(9.5); doc.setTextColor(40, 40, 40);
