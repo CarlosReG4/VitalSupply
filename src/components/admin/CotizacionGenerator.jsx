@@ -115,23 +115,23 @@ function escribeBloque(doc, x, y, titulo, lineas) {
   doc.setFont("helvetica", "normal"); doc.setFontSize(8.5); doc.setTextColor(40, 40, 40);
   lineas.forEach((l, i) => doc.text(String(l), x, y + 13 + i * 12));
 }
-// Carga una imagen (URL o data URL) y la regresa como PNG data URL. Falla -> null
+// Carga una imagen (URL o data URL) y regresa { url: PNG data URL, w, h }. Falla -> null
+// Conserva la proporción real (w, h) para dibujarla sin deformar en el PDF.
 function cargarImagen(url) {
   return new Promise((resolve) => {
     if (!url) return resolve(null);
-    if (url.startsWith("data:")) return resolve(url);
     const img = new Image();
     img.crossOrigin = "anonymous";
     img.onload = () => {
       try {
-        const max = 320;
+        const max = 480;
         const scale = Math.min(1, max / Math.max(img.naturalWidth, img.naturalHeight));
         const w = Math.max(1, Math.round(img.naturalWidth * scale));
         const h = Math.max(1, Math.round(img.naturalHeight * scale));
         const c = document.createElement("canvas"); c.width = w; c.height = h;
         const ctx = c.getContext("2d"); ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, w, h);
         ctx.drawImage(img, 0, 0, w, h);
-        resolve(c.toDataURL("image/png"));
+        resolve({ url: c.toDataURL("image/png"), w, h });
       } catch (e) { resolve(null); }
     };
     img.onerror = () => resolve(null);
@@ -205,27 +205,32 @@ async function construirPDF(cot) {
 
   autoTable(doc, {
     head, body, startY: y, margin: { left: M, right: M },
-    styles: { fontSize: 8.5, cellPadding: 4, valign: "middle", minCellHeight: 92 },
+    styles: { fontSize: 8.5, cellPadding: 4, valign: "middle", minCellHeight: 116 },
     headStyles: { fillColor: AZUL, textColor: 255, fontStyle: "bold" },
     columnStyles: rfq
       ? {
-          0: { cellWidth: 24, halign: "center" }, 1: { cellWidth: 96, halign: "center" },
+          0: { cellWidth: 24, halign: "center" }, 1: { cellWidth: 140, halign: "center" },
           2: { cellWidth: 90 }, 4: { cellWidth: 50, halign: "center" },
         }
       : {
-          0: { cellWidth: 22, halign: "center" }, 1: { cellWidth: 96, halign: "center" },
+          0: { cellWidth: 22, halign: "center" }, 1: { cellWidth: 132, halign: "center" },
           2: { cellWidth: 70 }, 4: { cellWidth: 32, halign: "center" },
           5: { cellWidth: 70, halign: "right" }, 6: { cellWidth: 70, halign: "right" },
         },
     theme: "grid",
     didDrawCell: (data) => {
       if (data.section === "body" && data.column.index === 1) {
-        const img = rowImgs[data.row.index];
-        if (img) {
-          const pad = 2, size = Math.min(data.cell.width, data.cell.height) - pad * 2;
-          const x = data.cell.x + (data.cell.width - size) / 2;
-          const yy = data.cell.y + (data.cell.height - size) / 2;
-          try { doc.addImage(img, "PNG", x, yy, size, size); } catch (_) {}
+        const im = rowImgs[data.row.index];
+        if (im && im.url) {
+          const pad = 3;
+          const boxW = data.cell.width - pad * 2;
+          const boxH = data.cell.height - pad * 2;
+          // Ajuste "contain": llena la celda lo más posible sin deformar la foto.
+          const s = Math.min(boxW / im.w, boxH / im.h);
+          const w = Math.max(1, im.w * s), h = Math.max(1, im.h * s);
+          const x = data.cell.x + (data.cell.width - w) / 2;
+          const yy = data.cell.y + (data.cell.height - h) / 2;
+          try { doc.addImage(im.url, "PNG", x, yy, w, h); } catch (_) {}
         }
       }
     },
