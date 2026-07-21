@@ -124,7 +124,7 @@ function cargarImagen(url) {
     img.crossOrigin = "anonymous";
     img.onload = () => {
       try {
-        const max = 200;
+        const max = 320;
         const scale = Math.min(1, max / Math.max(img.naturalWidth, img.naturalHeight));
         const w = Math.max(1, Math.round(img.naturalWidth * scale));
         const h = Math.max(1, Math.round(img.naturalHeight * scale));
@@ -205,15 +205,15 @@ async function construirPDF(cot) {
 
   autoTable(doc, {
     head, body, startY: y, margin: { left: M, right: M },
-    styles: { fontSize: 8.5, cellPadding: 4, valign: "middle", minCellHeight: 62 },
+    styles: { fontSize: 8.5, cellPadding: 4, valign: "middle", minCellHeight: 92 },
     headStyles: { fillColor: AZUL, textColor: 255, fontStyle: "bold" },
     columnStyles: rfq
       ? {
-          0: { cellWidth: 24, halign: "center" }, 1: { cellWidth: 80, halign: "center" },
+          0: { cellWidth: 24, halign: "center" }, 1: { cellWidth: 96, halign: "center" },
           2: { cellWidth: 90 }, 4: { cellWidth: 50, halign: "center" },
         }
       : {
-          0: { cellWidth: 22, halign: "center" }, 1: { cellWidth: 70, halign: "center" },
+          0: { cellWidth: 22, halign: "center" }, 1: { cellWidth: 96, halign: "center" },
           2: { cellWidth: 70 }, 4: { cellWidth: 32, halign: "center" },
           5: { cellWidth: 70, halign: "right" }, 6: { cellWidth: 70, halign: "right" },
         },
