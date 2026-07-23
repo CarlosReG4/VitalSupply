@@ -6,6 +6,7 @@ import { AuthProvider } from './context/AuthContext';
 
 // 1. Componentes estáticos (siempre visibles)
 import BotonWhatsapp from './components/common/BotonWhatsapp';
+import ChatBot from './components/common/ChatBot';
 import Header from './components/layout/Header';
 import Footer from './components/layout/Footer';
 import ScrollToTop from './components/layout/ScrollToTop';
@@ -104,6 +105,7 @@ function App() {
 
           <Footer />
           <BotonWhatsapp />
+          <ChatBot />
           <Analytics />
         </BrowserRouter>
       </AuthProvider>
