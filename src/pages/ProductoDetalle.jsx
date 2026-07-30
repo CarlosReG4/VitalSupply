@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useParams, Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async'; // Importamos el SEO
 import { useProducto } from '../hooks/useProducto';
+import { useTipoCambio } from '../hooks/useTipoCambio';
 import { useCartStore } from '../store/cartStore';
 import { nombreProducto } from '../utils/helpers';
-import VariantSelector from '../components/producto/VariantSelector';
 
 // Helper: normaliza el campo JSONB (puede venir como array, objeto o null).
 function normalizarJsonb(campo) {
@@ -17,27 +17,108 @@ function normalizarJsonb(campo) {
   return [];
 }
 
+// Normaliza para el match de imágenes por variante: trim + toLowerCase.
+const norm = (s) => String(s ?? '').trim().toLowerCase();
+
+// variantes_imagenes: jsonb array de { tipo, imagen, sku_ref }. Puede venir
+// como array o como string JSON. Devuelve siempre un array.
+function normalizarVariantesImagenes(campo) {
+  if (!campo) return [];
+  let arr = campo;
+  if (typeof campo === 'string') {
+    try { arr = JSON.parse(campo); } catch { return []; }
+  }
+  return Array.isArray(arr) ? arr : [];
+}
+
+// Imagen de una variante con fallback EN CASCADA (nunca la de otra variante):
+//   1) imagen del jsonb variantes_imagenes cuyo `tipo` == variante_nombre (normalizado)
+//   2) imagen_url de la fila de esa misma variante
+//   3) imagen_url del registro "padre" del grupo
+function imagenDeVariante(v, mapaImgs, padre) {
+  const match = mapaImgs[norm(v?.variante_nombre)];
+  return match || v?.imagen_url || padre?.imagen_url || null;
+}
+
 const ProductoDetalle = () => {
   // Extraemos id o sku de la URL para que no falle sin importar la ruta
   const { id, sku } = useParams();
   const { t, i18n } = useTranslation();
   const skuBusqueda = id || sku;
 
-  const { producto, variantes, loading, error } = useProducto(skuBusqueda); 
+  const { producto, variantes, loading, error } = useProducto(skuBusqueda);
+  const tc = useTipoCambio(); // USD -> MXN (public.config)
   const [cantidad, setCantidad] = useState(1);
   const [imagenActiva, setImagenActiva] = useState(null);
-  // Variante seleccionada in-situ (uno de los hermanos por url, o el base).
+  // Variante seleccionada in-situ (una fila del grupo_variantes, o el base).
   const [varianteSel, setVarianteSel] = useState(null);
   const agregarAlCarrito = useCartStore((state) => state.agregarAlCarrito);
 
-  // Al cargar un SKU nuevo: reset de cantidad, variante = base, imagen = base.
-  // La imagen principal se sincroniza con la identidad del producto (mi_sku),
-  // con fallback a /sin-imagen.svg si no tiene.
+  // Familia = base + hermanos del mismo grupo_variantes, deduplicada por mi_sku.
+  const familia = useMemo(() => {
+    const all = [producto, ...(variantes || [])].filter(Boolean);
+    const vistos = new Set();
+    const out = [];
+    for (const r of all) {
+      if (r?.mi_sku && !vistos.has(r.mi_sku)) { vistos.add(r.mi_sku); out.push(r); }
+    }
+    return out;
+  }, [producto, variantes]);
+
+  // Mapa de imágenes por variante: normaliza(tipo) -> imagen. Se arma con los
+  // variantes_imagenes de CUALQUIER fila del grupo (el "padre" suele traerlos).
+  const mapaImgs = useMemo(() => {
+    const m = {};
+    for (const row of familia) {
+      for (const it of normalizarVariantesImagenes(row?.variantes_imagenes)) {
+        const k = norm(it?.tipo);
+        if (k && it?.imagen && !(k in m)) m[k] = it.imagen;
+      }
+    }
+    return m;
+  }, [familia]);
+
+  // "Padre" del grupo: la fila que trae variantes_imagenes (si existe), o el base.
+  const padre = useMemo(
+    () => familia.find((r) => normalizarVariantesImagenes(r?.variantes_imagenes).length) || producto,
+    [familia, producto]
+  );
+
+  // Variantes para los botones: una por variante_nombre (hay SKUs duplicados).
+  // Prioridad al elegir representante: producto actual > con imagen > primero.
+  const variantesUnicas = useMemo(() => {
+    const porNombre = {};
+    for (const v of familia) {
+      const k = v?.variante_nombre;
+      if (!k) continue;
+      const cur = porNombre[k];
+      if (
+        !cur ||
+        v.mi_sku === producto?.mi_sku ||
+        (cur.mi_sku !== producto?.mi_sku && !cur.imagen_url && v.imagen_url)
+      ) {
+        porNombre[k] = v;
+      }
+    }
+    return Object.values(porNombre).sort(
+      (a, b) => (Number(a.precio) || 0) - (Number(b.precio) || 0)
+    );
+  }, [familia, producto]);
+
+  const esVariante = !!producto?.grupo_variantes;
+
+  // Al cargar un SKU nuevo: reset de cantidad y variante = base.
   useEffect(() => {
     setCantidad(1);
     setVarianteSel(producto || null);
-    setImagenActiva(producto?.imagen_url || null);
   }, [producto?.mi_sku]);
+
+  // Imagen por defecto = la de la variante seleccionada por defecto (el base),
+  // NO un imagen_url fijo. Se recalcula cuando llega la familia / cambian imágenes.
+  useEffect(() => {
+    if (!producto) return;
+    setImagenActiva(imagenDeVariante(producto, mapaImgs, padre));
+  }, [producto?.mi_sku, mapaImgs, padre]);
 
   // PANTALLA DE CARGA
   if (loading) return (
@@ -56,20 +137,19 @@ const ProductoDetalle = () => {
   );
 
   // Producto mostrado: variante seleccionada in-situ (o el base al cargar).
-  // Los hermanos por url ya traen mi_sku, precio, imagen_url y demás columnas,
-  // así el cambio de variante actualiza imagen + número de parte + precio +
-  // carrito SIN navegar. Fallback: si no hay variante, se usa el base.
   const prod = varianteSel || producto;
+
+  // Precio de la variante mostrada: cada fila trae su `precio` en USD; se
+  // convierte a MXN con el TC de config. Para productos individuales (sin
+  // grupo_variantes) se conserva el comportamiento anterior.
+  const precioVarianteMXN = esVariante ? (Number(prod.precio) || 0) * tc : null;
+  const fmtMXN = (n) =>
+    `$${Number(n || 0).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} MXN`;
 
   // Normalizamos las tablas (de la variante mostrada)
   const compatibilityList = normalizarJsonb(prod.compatibility);
   const especificacionesList = normalizarJsonb(prod.especificaciones);
   const oemcrossList = normalizarJsonb(prod.oemcross);
-
-  // Variantes (familia completa: base + hermanos por url)
-  const todasLasOpciones = [producto, ...(variantes || [])].filter(
-    (v, i, a) => v && a.findIndex(t => t?.mi_sku === v?.mi_sku) === i
-  ).sort((a, b) => (a?.tipo || '').localeCompare(b?.tipo || ''));
 
   // Galería de imágenes (de la variante mostrada)
   const galeriaImagenes = [
@@ -80,6 +160,11 @@ const ProductoDetalle = () => {
     prod?.imagen_url_5,
     prod?.imagen_url_6,
   ].filter(Boolean);
+
+  const seleccionarVariante = (v) => {
+    setVarianteSel(v);
+    setImagenActiva(imagenDeVariante(v, mapaImgs, padre));
+  };
 
   return (
     <>
@@ -97,7 +182,7 @@ const ProductoDetalle = () => {
       {/* DISEÑO ORIGINAL DE TU PÁGINA */}
       <div className="bg-white min-h-screen pb-20">
         <div className="container mx-auto px-4 py-6 max-w-[1200px]">
-          
+
           {/* BREADCRUMBS */}
           <nav className="text-xs text-gray-300 mb-8 flex gap-2">
              <Link to="/" className="hover:text-blue-600">{t('nav.home')}</Link>
@@ -108,38 +193,38 @@ const ProductoDetalle = () => {
           </nav>
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-16">
-            
+
             {/* COLUMNA 1: IMÁGENES INTERACTIVAS */}
             <div className="lg:col-span-5">
               <div className="flex items-center justify-center mb-4 relative h-[350px] bg-white rounded-2xl border border-gray-50 p-4">
-                <img 
+                <img
                   src={imagenActiva || '/sin-imagen.svg'}
                   onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = '/sin-imagen.svg'; }}
-                  
+
                   alt={nombreProducto(prod, i18n.language)}
                   className="w-full h-full object-contain mix-blend-multiply transition-all duration-300"
                 />
               </div>
-              
+
               {galeriaImagenes.length > 1 && (
                 <div className="flex gap-2 justify-center mt-4">
                    {galeriaImagenes.map((imgUrl, index) => (
-                     <div 
+                     <div
                        key={index}
                        onClick={() => setImagenActiva(imgUrl)}
                        className={`w-16 h-16 border rounded-xl p-1 cursor-pointer transition-all bg-white flex items-center justify-center overflow-hidden ${
-                         imagenActiva === imgUrl 
-                           ? 'border-blue-600 shadow-sm scale-105' 
+                         imagenActiva === imgUrl
+                           ? 'border-blue-600 shadow-sm scale-105'
                            : 'border-gray-200 hover:border-gray-400 opacity-80'
                        }`}
                      >
-                       <img 
-                         src={imgUrl} 
-                         className="max-w-full max-h-full object-contain mix-blend-multiply" 
-                         alt={`thumb-${index}`} 
+                       <img
+                         src={imgUrl}
+                         className="max-w-full max-h-full object-contain mix-blend-multiply"
+                         alt={`thumb-${index}`}
                          onError={(e) => {
                            e.target.closest('div').style.display = 'none';
-                           if (imagenActiva === imgUrl) setImagenActiva(producto?.imagen_url);
+                           if (imagenActiva === imgUrl) setImagenActiva(imagenDeVariante(prod, mapaImgs, padre));
                          }}
                        />
                      </div>
@@ -153,51 +238,50 @@ const ProductoDetalle = () => {
               <h1 className="text-2xl font-bold text-black leading-tight mb-2">
                 {nombreProducto(prod, i18n.language)}
               </h1>
-              
+
               <div className="flex text-yellow-400 text-xs mb-4">
                 <i className="fas fa-star"></i><i className="fas fa-star"></i><i className="fas fa-star"></i><i className="fas fa-star"></i><i className="fas fa-star"></i>
               </div>
-              
+
               <div className="text-xs text-gray-500 mb-6">
                 {t('catalog.partNumber')} <span className="font-bold text-black">{prod.mi_sku}</span>
               </div>
 
-              {/* Tarea B: selector universal de variantes (por grupo_variantes) */}
-              <VariantSelector producto={producto} />
-
-              {/* Bloque de opciones anterior (por url); se oculta si hay grupo_variantes
-                  para no duplicar selectores. */}
-              {!producto.grupo_variantes && todasLasOpciones.length > 1 && (
-                <div className="grid grid-cols-2 gap-y-4 gap-x-2">
-                  {todasLasOpciones.map((v, i) => {
-                    const isActive = prod.mi_sku === v.mi_sku;
-                    return (
-                      <button
-                        key={v.mi_sku}
-                        type="button"
-                        // In-situ: cambia imagen + número de parte + precio + carrito
-                        // a esta variante, sin navegar.
-                        onClick={() => {
-                          setVarianteSel(v);
-                          setImagenActiva(v.imagen_url || producto.imagen_url);
-                        }}
-                        aria-pressed={isActive}
-                        className={`text-left p-3 border-[3px] flex flex-col ${
-                          isActive
-                            ? 'border-yellow-400 bg-white'
-                            : 'border-transparent bg-white hover:border-gray-100'
-                        }`}
-                      >
-                        <span className="text-[11px] text-gray-700 mb-1 leading-tight">
-                          {v.tipo || t('productPage.option', { num: i + 1 })}
-                        </span>
-                        <span className="text-[11px] font-bold text-gray-900">
-                          ${Number(v.precio_venta_sugerido ?? v.precio).toLocaleString('en-US', { minimumFractionDigits: 0 })}
-                        </span>
-                      </button>
-                    );
-                  })}
-                </div>
+              {/* Selector de variantes: agrupado por grupo_variantes, in-situ.
+                  Etiqueta = variante_nombre. Cambia imagen + SKU + precio + carrito
+                  sin navegar. Solo se muestra si el grupo tiene 2+ variantes. */}
+              {esVariante && variantesUnicas.length > 1 && (
+                <section aria-label={t('productPage.chooseVariant', 'Elige tu variante')} className="mb-2">
+                  <h3 className="text-sm font-semibold text-gray-700 mb-3">
+                    {t('productPage.chooseVariant', 'Elige tu variante')}
+                  </h3>
+                  <div className="grid grid-cols-2 gap-y-4 gap-x-2">
+                    {variantesUnicas.map((v) => {
+                      const activa = norm(v.variante_nombre) === norm(prod.variante_nombre);
+                      const pmxn = (Number(v.precio) || 0) * tc;
+                      return (
+                        <button
+                          key={v.mi_sku}
+                          type="button"
+                          onClick={() => seleccionarVariante(v)}
+                          aria-pressed={activa}
+                          className={`text-left p-3 border-[3px] flex flex-col ${
+                            activa
+                              ? 'border-yellow-400 bg-white'
+                              : 'border-transparent bg-white hover:border-gray-100'
+                          }`}
+                        >
+                          <span className="text-[11px] text-gray-700 mb-1 leading-tight">
+                            {v.variante_nombre || '—'}
+                          </span>
+                          <span className="text-[11px] font-bold text-gray-900">
+                            ${pmxn.toLocaleString('es-MX', { maximumFractionDigits: 0 })} MXN
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </section>
               )}
             </div>
 
@@ -205,7 +289,12 @@ const ProductoDetalle = () => {
             <div className="lg:col-span-3 pt-2">
               <div className="flex justify-between items-start mb-6">
                 <span className="text-xs font-bold text-black mt-1">{t('product.price')}:</span>
-                {prod.en_promocion && Number(prod.precio_promocion) > 0 ? (
+                {esVariante ? (
+                  // Variante: precio de la fila seleccionada (USD -> MXN con TC).
+                  <span className="text-2xl font-bold text-yellow-500 text-right">
+                    {fmtMXN(precioVarianteMXN)}
+                  </span>
+                ) : prod.en_promocion && Number(prod.precio_promocion) > 0 ? (
                   <span className="flex flex-col items-end leading-tight">
                     <span className="flex items-center gap-2">
                       <span className="text-2xl font-bold text-yellow-500">
@@ -242,7 +331,7 @@ const ProductoDetalle = () => {
                     type="text"
                     value={cantidad}
                     onChange={(e) => {
-                      const val = e.target.value.replace(/[^0-9]/g, ''); 
+                      const val = e.target.value.replace(/[^0-9]/g, '');
                       setCantidad(val === '' ? '' : Number(val));
                     }}
                     onBlur={() => {
@@ -259,13 +348,19 @@ const ProductoDetalle = () => {
                   </button>
                 </div>
               </div>
-              
+
               <div className="text-right text-[10px] text-gray-400 mb-6">
                 {t('product.inStock')}
               </div>
 
-              <button 
-                onClick={() => agregarAlCarrito({ ...prod, cantidad })}
+              <button
+                onClick={() => agregarAlCarrito({
+                  ...prod,
+                  // Para variantes, el carrito lleva el precio ya en MXN (coherente
+                  // con lo mostrado y con el total de WhatsApp/checkout).
+                  ...(esVariante ? { precio: precioVarianteMXN } : {}),
+                  cantidad,
+                })}
                 className="w-full bg-[#8ced00] hover:bg-[#7bc800] text-white py-3 font-bold transition-colors mb-8 text-sm shadow-sm"
               >
                 {t('product.addToCart')}
