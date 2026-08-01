@@ -8,6 +8,7 @@ import GestorPromociones from '../../components/admin/GestorPromociones'
 import CotizacionGenerator from '../../components/admin/CotizacionGenerator';
 import Inventario from '../../components/admin/Inventario';
 import Ventas from '../../components/admin/Ventas';
+import AnalisisCostos from '../../components/admin/AnalisisCostos';
 
 export default function AdminDashboard() {
   const { logout, usuario } = useAuth();
@@ -130,6 +131,23 @@ export default function AdminDashboard() {
           >
             <i className="fas fa-cash-register text-base w-5 text-center"></i>
             Ventas
+          </button>
+
+          {/* NUEVO: ANÁLISIS DE COSTOS */}
+          <button
+            onClick={() => {
+              setSeccion('costos');
+              setEnCreacion(false);
+              setProductoEditar(null);
+            }}
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-semibold transition-colors ${
+              seccion === 'costos'
+                ? 'bg-blue-600 text-white shadow-md'
+                : 'hover:bg-slate-800 hover:text-white'
+            }`}
+          >
+            <i className="fas fa-chart-line text-base w-5 text-center"></i>
+            Análisis de Costos
           </button>
 
           {/* NUEVO: COTIZACIONES */}
@@ -279,6 +297,13 @@ export default function AdminDashboard() {
                 <p className="text-gray-500 text-sm">Registra ventas de forma manual; el inventario se descuenta automáticamente. Lo que se venda sin stock aparece en "Por surtir" para pedir a Sino-K.</p>
               </div>
               <Ventas />
+            </div>
+          )}
+
+          {/* NUEVA SECCIÓN: ANÁLISIS DE COSTOS (solo admin) */}
+          {seccion === 'costos' && (
+            <div className="rounded-xl shadow-sm border border-gray-200 overflow-hidden animate-fade-in">
+              <AnalisisCostos />
             </div>
           )}
 
