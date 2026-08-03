@@ -9,6 +9,7 @@ import CotizacionGenerator from '../../components/admin/CotizacionGenerator';
 import Inventario from '../../components/admin/Inventario';
 import Ventas from '../../components/admin/Ventas';
 import AnalisisCostos from '../../components/admin/AnalisisCostos';
+import PanelFinanzas from '../../components/admin/PanelFinanzas';
 
 export default function AdminDashboard() {
   const { logout, usuario } = useAuth();
@@ -148,6 +149,23 @@ export default function AdminDashboard() {
           >
             <i className="fas fa-chart-line text-base w-5 text-center"></i>
             Análisis de Costos
+          </button>
+
+          {/* NUEVO: FINANZAS */}
+          <button
+            onClick={() => {
+              setSeccion('finanzas');
+              setEnCreacion(false);
+              setProductoEditar(null);
+            }}
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-semibold transition-colors ${
+              seccion === 'finanzas'
+                ? 'bg-blue-600 text-white shadow-md'
+                : 'hover:bg-slate-800 hover:text-white'
+            }`}
+          >
+            <i className="fas fa-coins text-base w-5 text-center"></i>
+            Finanzas
           </button>
 
           {/* NUEVO: COTIZACIONES */}
@@ -304,6 +322,13 @@ export default function AdminDashboard() {
           {seccion === 'costos' && (
             <div className="rounded-xl shadow-sm border border-gray-200 overflow-hidden animate-fade-in">
               <AnalisisCostos />
+            </div>
+          )}
+
+          {/* NUEVA SECCIÓN: FINANZAS (solo admin) */}
+          {seccion === 'finanzas' && (
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 animate-fade-in">
+              <PanelFinanzas />
             </div>
           )}
 
