@@ -403,9 +403,16 @@ export default function CotizacionGenerator() {
   const upd = (key, c, v) => setItems((prev) => prev.map((it) => (it.key === key ? { ...it, [c]: v } : it)));
   const quitar = (key) => setItems((prev) => prev.filter((it) => it.key !== key));
 
+  // Elimina caracteres invisibles de dirección Unicode (LRM/RLM/LRE..PDI) que
+  // iOS/WhatsApp inserta al copiar teléfonos y que rompen el render del PDF.
+  const RE_INVISIBLE = new RegExp("[\\u200e\\u200f\\u202a-\\u202e\\u2066-\\u2069]", "g");
+  const limpiarTexto = (s) => (typeof s === "string" ? s.replace(RE_INVISIBLE, "").trim() : s);
+
   const cotActual = () => ({
-    tipo, idioma, folio: folio || null, fecha, destinatario, atencion,
-    correo_cliente: tipo === "cliente" ? (correoCliente || null) : null,
+    tipo, idioma, folio: folio || null, fecha,
+    destinatario: limpiarTexto(destinatario),
+    atencion: limpiarTexto(atencion),
+    correo_cliente: tipo === "cliente" ? (limpiarTexto(correoCliente) || null) : null,
     validez, moneda,
     sin_precios: tipo === "pedido" && sinPrecios,
     descuento_tipo: tipo === "cliente" ? descTipo : "none",
@@ -416,7 +423,7 @@ export default function CotizacionGenerator() {
     envio: tipo === "cliente" ? (envioTipo === "monto" ? Number(envio) || 0 : 0) : (Number(envio) || 0),
     cargo_banco: tipo === "pedido" ? Number(cargoBanco) || 0 : 0,
     tipo_cambio: tipo === "cliente" ? Number(fx) || 0 : null,
-    notas,
+    notas: limpiarTexto(notas),
     items: items.map((it) => ({ grupo: it.grupo || "", sku: it.sku, sinok: it.sinok, nombre: it.nombre, imagen: it.imagen || "", qty: Number(it.qty) || 0, precio: Number(it.precio) || 0 })),
   });
 
