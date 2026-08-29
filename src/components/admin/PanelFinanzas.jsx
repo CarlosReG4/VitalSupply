@@ -56,6 +56,7 @@ function KpiCard({ label, value, sub, highlight }) {
 export default function PanelFinanzas() {
   const [pnl, setPnl] = useState(null);
   const [semanal, setSemanal] = useState([]);
+  const [retiros, setRetiros] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -72,15 +73,18 @@ export default function PanelFinanzas() {
   async function cargar() {
     setLoading(true);
     setError(null);
-    const [{ data: p, error: e1 }, { data: s, error: e2 }] = await Promise.all([
+    const [{ data: p, error: e1 }, { data: s, error: e2 }, { data: r, error: e3 }] = await Promise.all([
       supabase.from("v_pnl_resumen").select("*").single(),
       supabase.from("v_gastos_semanal").select("*").order("fecha_corte", { ascending: false }),
+      supabase.from("v_retiros_resumen").select("*"),
     ]);
     if (e1 || e2) {
       setError("No se pudieron cargar las finanzas. Verifica que hay sesión de admin activa.");
     } else {
       setPnl(p);
       setSemanal(s || []);
+      // Los retiros no bloquean el panel: si fallan, se asume $0 retirado.
+      setRetiros(e3 ? [] : (r || []));
     }
     setLoading(false);
   }
@@ -131,6 +135,36 @@ export default function PanelFinanzas() {
   const utilidad = Number(pnl?.utilidad_neta_mxn || 0);
   const margen = Number(pnl?.margen_neto_pct || 0);
 
+  // Etiquetas legibles de categoría de gasto
+  const CAT_LABEL = {
+    facebook_ads: "Publicidad",
+    importacion: "Importación",
+    empaque: "Empaque",
+    perdida_aduana: "Pérdida aduana",
+  };
+  const catLabel = (c) => CAT_LABEL[c] || c;
+
+  // Publicidad = solo gasto real de Facebook Ads. La vista v_gastos_semanal ya
+  // convierte los cortes acumulados en el gasto de la semana (deltas), así que
+  // sumar esos deltas da el gasto neto de anuncios (sin el resto de gastos op.).
+  const publicidad = semanal
+    .filter((r) => r.categoria === "facebook_ads")
+    .reduce((acc, r) => acc + Number(r.gasto_semana_mxn || 0), 0);
+
+  // Reparto de utilidad por socio. IMPORTANTE: los retiros son informativos y
+  // NO se restan de la utilidad neta ni del desglose (la utilidad ya está
+  // calculada antes del reparto). pendiente = (utilidad / 2) − retirado.
+  const porSocio = Number(pnl?.utilidad_por_socio_mxn || 0);
+  const retiradoDe = Object.fromEntries(
+    (retiros || []).map((r) => [r.socio, Number(r.retirado_mxn || 0)])
+  );
+  const SOCIOS = ["Carlos", "Ricardo"];
+  const listaSocios = [...new Set([...SOCIOS, ...(retiros || []).map((r) => r.socio)])];
+  const reparto = listaSocios.map((s) => {
+    const retirado = retiradoDe[s] || 0;
+    return { socio: s, retirado, pendiente: porSocio - retirado };
+  });
+
   return (
     <div className="mx-auto max-w-3xl p-4">
       <div className="mb-4 flex items-center justify-between">
@@ -145,7 +179,35 @@ export default function PanelFinanzas() {
         <KpiCard label="Utilidad neta" value={mxn(utilidad)} sub={`Margen ${margen}%`} highlight />
         <KpiCard label="Por socio" value={mxn(pnl?.utilidad_por_socio_mxn)} sub="Carlos / Ricardo" />
         <KpiCard label="Ingreso" value={mxn(pnl?.ingreso_mxn)} sub={`${pnl?.num_ventas} ventas`} />
-        <KpiCard label="Ads" value={mxn(pnl?.gastos_operativos_mxn)} sub="Facebook" />
+        <KpiCard label="Publicidad" value={mxn(publicidad)} sub="Facebook Ads" />
+      </div>
+
+      {/* Reparto de utilidad — informativo. Los retiros NO afectan la utilidad. */}
+      <div className="mt-4 rounded-2xl border border-gray-200 bg-white p-4">
+        <h2 className="text-sm font-semibold" style={{ color: NAVY }}>Reparto de utilidad</h2>
+        <p className="mb-3 mt-0.5 text-xs text-gray-500">
+          Utilidad por socio: <b>{mxn(porSocio)}</b>. Los retiros son solo informativos y no afectan la utilidad neta.
+        </p>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="text-left text-xs uppercase tracking-wide text-gray-500">
+                <th className="py-1 pr-2">Socio</th>
+                <th className="py-1 pr-2 text-right">Retirado</th>
+                <th className="py-1 text-right">Pendiente</th>
+              </tr>
+            </thead>
+            <tbody>
+              {reparto.map((r) => (
+                <tr key={r.socio} className="border-t border-gray-100">
+                  <td className="py-1.5 pr-2 font-medium" style={{ color: NAVY }}>{r.socio}</td>
+                  <td className="py-1.5 pr-2 text-right font-semibold" style={{ color: "#16a34a" }}>{mxn(r.retirado)}</td>
+                  <td className="py-1.5 text-right font-semibold" style={{ color: NAVY }}>{mxn(r.pendiente)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {/* Desglose de costos */}
@@ -155,22 +217,23 @@ export default function PanelFinanzas() {
           <Row k="Ingreso" v={mxn(pnl?.ingreso_mxn)} />
           <Row k="− Costo producto" v={mxn(pnl?.costo_producto_mxn)} />
           <Row k="− Guías" v={mxn(pnl?.guias_mxn)} />
-          <Row k="− Ads" v={mxn(pnl?.gastos_operativos_mxn)} />
+          <Row k="− Gastos operativos" v={mxn(pnl?.gastos_operativos_mxn)} />
           <div className="my-1 border-t border-gray-200" />
           <Row k="Utilidad neta" v={mxn(utilidad)} bold />
         </dl>
       </div>
 
-      {/* Rendimiento de anuncios por semana */}
+      {/* Gastos por corte — todas las categorías (no solo anuncios) */}
       <div className="mt-4 rounded-2xl border border-gray-200 bg-white p-4">
-        <h2 className="mb-2 text-sm font-semibold" style={{ color: NAVY }}>Anuncios por semana</h2>
+        <h2 className="mb-2 text-sm font-semibold" style={{ color: NAVY }}>Gastos por corte</h2>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="text-left text-xs uppercase tracking-wide text-gray-500">
                 <th className="py-1 pr-2">Corte</th>
-                <th className="py-1 pr-2">Anuncio</th>
-                <th className="py-1 pr-2 text-right">Gasto sem.</th>
+                <th className="py-1 pr-2">Categoría</th>
+                <th className="py-1 pr-2">Concepto</th>
+                <th className="py-1 pr-2 text-right">Gasto</th>
                 <th className="py-1 pr-2 text-right">Conv.</th>
                 <th className="py-1 text-right">$/Conv.</th>
               </tr>
@@ -178,20 +241,26 @@ export default function PanelFinanzas() {
             <tbody>
               {semanal.map((r, i) => {
                 const g = Number(r.gasto_semana_mxn || 0);
-                const c = Number(r.conv_semana || 0);
-                const cac = c > 0 ? g / c : null;
+                const c = r.conv_semana == null ? null : Number(r.conv_semana);
+                const cac = c && c > 0 ? g / c : null;
                 return (
                   <tr key={i} className="border-t border-gray-100">
-                    <td className="py-1.5 pr-2">{r.fecha_corte}</td>
-                    <td className="py-1.5 pr-2 font-medium" style={{ color: NAVY }}>{r.concepto}</td>
+                    <td className="py-1.5 pr-2 whitespace-nowrap">{r.fecha_corte}</td>
+                    <td className="py-1.5 pr-2">
+                      <span className="rounded px-1.5 py-0.5 text-xs font-semibold"
+                        style={{ background: "#eef2f8", color: NAVY }}>
+                        {catLabel(r.categoria)}
+                      </span>
+                    </td>
+                    <td className="py-1.5 pr-2 font-medium" style={{ color: NAVY }}>{r.concepto || "—"}</td>
                     <td className="py-1.5 pr-2 text-right">{mxn(g)}</td>
-                    <td className="py-1.5 pr-2 text-right">{c}</td>
+                    <td className="py-1.5 pr-2 text-right">{c == null ? "—" : c}</td>
                     <td className="py-1.5 text-right">{cac ? mxn(cac) : "—"}</td>
                   </tr>
                 );
               })}
               {semanal.length === 0 && (
-                <tr><td colSpan={5} className="py-3 text-center text-gray-400">Aún no hay cortes cargados.</td></tr>
+                <tr><td colSpan={6} className="py-3 text-center text-gray-400">Aún no hay cortes cargados.</td></tr>
               )}
             </tbody>
           </table>
