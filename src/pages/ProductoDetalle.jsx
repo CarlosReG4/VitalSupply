@@ -6,6 +6,7 @@ import { useProducto } from '../hooks/useProducto';
 import { useCartStore } from '../store/cartStore';
 import { nombreProducto } from '../utils/helpers';
 import VariantSelector from '../components/producto/VariantSelector';
+import { getVariantesConfig } from '../data/variantesProducto';
 
 // Helper: normaliza el campo JSONB (puede venir como array, objeto o null).
 function normalizarJsonb(campo) {
@@ -28,6 +29,8 @@ const ProductoDetalle = () => {
   const [imagenActiva, setImagenActiva] = useState(null);
   // Variante seleccionada in-situ (uno de los hermanos por url, o el base).
   const [varianteSel, setVarianteSel] = useState(null);
+  // SKU de variante para productos con config de variantes (overlay JSON).
+  const [variantSku, setVariantSku] = useState(null);
   const agregarAlCarrito = useCartStore((state) => state.agregarAlCarrito);
 
   // Al cargar un SKU nuevo: reset de cantidad, variante = base, imagen = base.
@@ -37,6 +40,10 @@ const ProductoDetalle = () => {
     setCantidad(1);
     setVarianteSel(producto || null);
     setImagenActiva(producto?.imagen_url || null);
+    // Si el producto tiene config de variantes, arranca en la variante default
+    // (para que la página cargue idéntica a hoy).
+    const cfg = getVariantesConfig(producto?.mi_sku);
+    setVariantSku(cfg ? cfg.defaultVariantSku : null);
   }, [producto?.mi_sku]);
 
   // PANTALLA DE CARGA
@@ -55,11 +62,30 @@ const ProductoDetalle = () => {
     </div>
   );
 
-  // Producto mostrado: variante seleccionada in-situ (o el base al cargar).
-  // Los hermanos por url ya traen mi_sku, precio, imagen_url y demás columnas,
-  // así el cambio de variante actualiza imagen + número de parte + precio +
-  // carrito SIN navegar. Fallback: si no hay variante, se usa el base.
-  const prod = varianteSel || producto;
+  // ── Variantes por config (overlay JSON, mismo SKU/URL canónico) ───────────
+  const esEs = String(i18n.language || 'es').startsWith('es');
+  const varConfig = getVariantesConfig(producto?.mi_sku);
+  const activeVar = varConfig
+    ? (varConfig.variants.find((v) => v.sku === (variantSku || varConfig.defaultVariantSku)) || varConfig.variants[0])
+    : null;
+  const baseTitle = varConfig ? (esEs ? varConfig.base_title_es : varConfig.base_title_en) : null;
+  const varLabel = activeVar ? (esEs ? activeVar.label_es : activeVar.label_en) : null;
+  const tituloVariante = varConfig ? `${baseTitle} — ${varLabel}` : null;
+
+  // Producto mostrado: si hay config de variante, se sobreescribe el mostrado
+  // (SKU visible, precio, MPN, título) con la variante activa SIN navegar y sin
+  // tocar la BD. Si no, se usa la variante por url o el base.
+  const prod = varConfig
+    ? {
+        ...producto,
+        mi_sku: activeVar.sku,
+        precio: Number(activeVar.price),
+        precio_venta_sugerido: null,
+        en_promocion: false,
+        nombre: `${varConfig.base_title_en} — ${activeVar.label_en}`,
+        nombre_es: `${varConfig.base_title_es} — ${activeVar.label_es}`,
+      }
+    : (varianteSel || producto);
 
   // Normalizamos las tablas (de la variante mostrada)
   const compatibilityList = normalizarJsonb(prod.compatibility);
@@ -81,17 +107,67 @@ const ProductoDetalle = () => {
     prod?.imagen_url_6,
   ].filter(Boolean);
 
+  // ── SEO: URL canónica única (SIEMPRE el SKU padre, no la variante) ────────
+  const canonicalUrl =
+    typeof window !== 'undefined'
+      ? `${window.location.origin}/producto/${producto.mi_sku}`
+      : `/producto/${producto.mi_sku}`;
+
+  // JSON-LD ProductGroup con hasVariant + AggregateOffer (solo si hay config).
+  const variantesActivas = varConfig ? varConfig.variants.filter((v) => v.active !== false) : [];
+  const precios = variantesActivas.map((v) => Number(v.price));
+  const jsonLd = varConfig
+    ? {
+        '@context': 'https://schema.org/',
+        '@type': 'ProductGroup',
+        productGroupID: producto.mi_sku,
+        sku: producto.mi_sku,
+        name: baseTitle,
+        url: canonicalUrl,
+        image: producto.imagen_url || undefined,
+        brand: { '@type': 'Brand', name: varConfig.brand },
+        variesBy: ['https://schema.org/size'],
+        hasVariant: variantesActivas.map((v) => ({
+          '@type': 'Product',
+          name: `${baseTitle} — ${esEs ? v.label_es : v.label_en}`,
+          sku: v.sku,
+          mpn: v.mpn,
+          brand: { '@type': 'Brand', name: varConfig.brand },
+          offers: {
+            '@type': 'Offer',
+            priceCurrency: varConfig.currency || 'USD',
+            price: v.price,
+            availability: 'https://schema.org/InStock',
+          },
+        })),
+        offers: {
+          '@type': 'AggregateOffer',
+          priceCurrency: varConfig.currency || 'USD',
+          lowPrice: Math.min(...precios),
+          highPrice: Math.max(...precios),
+          offerCount: variantesActivas.length,
+          availability: 'https://schema.org/InStock',
+        },
+      }
+    : null;
+
   return (
     <>
       {/* MAGIA DE SEO PARA GOOGLE */}
       <Helmet>
-        <title>{nombreProducto(producto, i18n.language)} | Catsen Medical</title>
+        <title>{nombreProducto(producto, i18n.language)} | VitalSupply</title>
         <meta
           name="description"
           content={`Compra ${nombreProducto(producto, i18n.language)}. Sensor médico compatible con equipos de la marca. SKU: ${producto.mi_sku}. Envíos rápidos y seguros.`}
         />
-        <meta property="og:title" content={`${nombreProducto(producto, i18n.language)} | Catsen Medical`} />
+        <meta property="og:title" content={`${nombreProducto(producto, i18n.language)} | VitalSupply`} />
         <meta property="og:image" content={producto.imagen_url} />
+        {/* URL canónica única para el producto (SKU padre) */}
+        <link rel="canonical" href={canonicalUrl} />
+        {/* Datos estructurados de variantes para Google */}
+        {jsonLd && (
+          <script type="application/ld+json">{JSON.stringify(jsonLd)}</script>
+        )}
       </Helmet>
 
       {/* DISEÑO ORIGINAL DE TU PÁGINA */}
@@ -158,16 +234,58 @@ const ProductoDetalle = () => {
                 <i className="fas fa-star"></i><i className="fas fa-star"></i><i className="fas fa-star"></i><i className="fas fa-star"></i><i className="fas fa-star"></i>
               </div>
               
-              <div className="text-xs text-gray-500 mb-6">
+              <div className="text-xs text-gray-500 mb-1">
                 {t('catalog.partNumber')} <span className="font-bold text-black">{prod.mi_sku}</span>
               </div>
+              {varConfig && (
+                <div className="text-xs text-gray-500 mb-6">
+                  MPN (P/N Sino-K) <span className="font-bold text-black">{activeVar.mpn}</span>
+                  <span className="ml-2 rounded bg-gray-100 px-1.5 py-0.5 text-[10px] font-semibold text-gray-500">
+                    {esEs ? 'Conector' : 'Connector'} {varConfig.connector}
+                  </span>
+                </div>
+              )}
+              {!varConfig && <div className="mb-6" />}
+
+              {/* Selector de variante por config (overlay JSON) */}
+              {varConfig && (
+                <fieldset className="mb-6">
+                  <legend className="mb-2 text-xs font-bold uppercase tracking-wide text-gray-600">
+                    {esEs ? 'Elige la variante' : 'Choose variant'}
+                  </legend>
+                  <div className="grid grid-cols-2 gap-2">
+                    {varConfig.variants.filter((v) => v.active !== false).map((v) => {
+                      const activo = activeVar.sku === v.sku;
+                      return (
+                        <button
+                          key={v.sku}
+                          type="button"
+                          role="radio"
+                          aria-checked={activo}
+                          onClick={() => setVariantSku(v.sku)}
+                          className={`flex items-center justify-between rounded-lg border-2 px-3 py-2 text-left transition-colors ${
+                            activo ? 'border-yellow-400 bg-yellow-50' : 'border-gray-200 bg-white hover:border-gray-300'
+                          }`}
+                        >
+                          <span className="text-[11px] font-semibold leading-tight text-gray-800">
+                            {esEs ? v.label_es : v.label_en}
+                          </span>
+                          <span className="ml-2 shrink-0 text-[11px] font-bold text-gray-900">
+                            ${Number(v.price).toLocaleString('en-US', { minimumFractionDigits: 0 })}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </fieldset>
+              )}
 
               {/* Tarea B: selector universal de variantes (por grupo_variantes) */}
-              <VariantSelector producto={producto} />
+              {!varConfig && <VariantSelector producto={producto} />}
 
               {/* Bloque de opciones anterior (por url); se oculta si hay grupo_variantes
-                  para no duplicar selectores. */}
-              {!producto.grupo_variantes && todasLasOpciones.length > 1 && (
+                  o si el producto usa config de variante, para no duplicar selectores. */}
+              {!varConfig && !producto.grupo_variantes && todasLasOpciones.length > 1 && (
                 <div className="grid grid-cols-2 gap-y-4 gap-x-2">
                   {todasLasOpciones.map((v, i) => {
                     const isActive = prod.mi_sku === v.mi_sku;

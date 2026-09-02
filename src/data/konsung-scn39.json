@@ -1,0 +1,23 @@
+{
+  "sku": "MED-9773",
+  "brand": "Konsung",
+  "family": "Konsung Reusable SpO2 Sensors",
+  "connector": "SCN39",
+  "pins": 12,
+  "cable_length": "3m",
+  "type": "Reusable",
+  "compatibility_note": "Compatible / no OEM",
+  "defaultVariantSku": "MED-9773-AC",
+  "base_title_es": "Sensor SpO2 reutilizable compatible con Konsung (SCN39, 12 pines, 3 m)",
+  "base_title_en": "Reusable SpO2 sensor compatible with Konsung (SCN39, 12-pin, 3m)",
+  "currency": "USD",
+  "variants": [
+    { "sku": "MED-9773-AC", "mpn": "SP9331", "label_es": "Adulto pinza (clip)",        "label_en": "Adult Clip",     "price": 72, "active": true },
+    { "sku": "MED-9773-AS", "mpn": "SP8331", "label_es": "Adulto suave (soft)",        "label_en": "Adult Soft",     "price": 78, "active": true },
+    { "sku": "MED-9773-PC", "mpn": "SP7331", "label_es": "Pediátrico pinza (clip)",    "label_en": "Pediatric Clip", "price": 76, "active": true },
+    { "sku": "MED-9773-PS", "mpn": "SP6331", "label_es": "Pediátrico suave (soft)",    "label_en": "Pediatric Soft", "price": 82, "active": true },
+    { "sku": "MED-9773-NW", "mpn": "SP5331", "label_es": "Neonatal envolvente (wrap)", "label_en": "Neonate Wrap",   "price": 88, "active": true },
+    { "sku": "MED-9773-MY", "mpn": "SP4331", "label_es": "Multi-Y",                    "label_en": "Multi-Y",        "price": 92, "active": true },
+    { "sku": "MED-9773-EC", "mpn": "SP3331", "label_es": "Oreja (ear clip)",           "label_en": "Ear Clip",       "price": 79, "active": true }
+  ]
+}
