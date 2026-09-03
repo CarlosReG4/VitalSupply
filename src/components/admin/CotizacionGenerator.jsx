@@ -156,15 +156,22 @@ function cargarImagen(url) {
             const dr = r - bg[0], dg = g - bg[1], db = b - bg[2]; // o cerca del color de esquina
             return (dr * dr + dg * dg + db * db) <= TOL2;
           };
-          let x0 = w, y0 = h, x1 = -1, y1 = -1;
+          // Recorte por DENSIDAD (no por min/max): cuenta píxeles de producto por
+          // fila y por columna. Así un píxel suelto (mota del JPEG, marca de agua,
+          // ruido del degradado) no infla la caja hasta el marco completo y deja la
+          // foto sin recortar; se toma el bloque donde de verdad está el producto.
+          const colCount = new Int32Array(w), rowCount = new Int32Array(h);
           for (let py = 0; py < h; py++) {
             for (let px = 0; px < w; px++) {
-              if (!esFondo((py * w + px) * 4)) {
-                if (px < x0) x0 = px; if (px > x1) x1 = px;
-                if (py < y0) y0 = py; if (py > y1) y1 = py;
-              }
+              if (!esFondo((py * w + px) * 4)) { colCount[px]++; rowCount[py]++; }
             }
           }
+          const thrCol = Math.max(2, Math.round(h * 0.02)); // una columna cuenta si >=2% de su alto es producto
+          const thrRow = Math.max(2, Math.round(w * 0.02));
+          let x0 = 0; while (x0 < w && colCount[x0] < thrCol) x0++;
+          let x1 = w - 1; while (x1 >= 0 && colCount[x1] < thrCol) x1--;
+          let y0 = 0; while (y0 < h && rowCount[y0] < thrRow) y0++;
+          let y1 = h - 1; while (y1 >= 0 && rowCount[y1] < thrRow) y1--;
           if (x1 >= x0 && y1 >= y0) box = { x0, y0, x1, y1 };
         } catch (_) { box = null; } // canvas "tainted" (sin CORS): no se puede leer -> sin recorte
 
