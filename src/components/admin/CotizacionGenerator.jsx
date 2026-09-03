@@ -146,10 +146,14 @@ function cargarImagen(url) {
           });
           const med = (k) => esquinas.map((e) => e[k]).sort((a, b) => a - b)[2]; // mediana ~ 3er valor
           const bg = [med(0), med(1), med(2)];
-          const TOL2 = 20 * 20; // distancia² máxima al color de fondo para considerarlo margen
+          const TOL2 = 30 * 30; // distancia² máxima al color de fondo (gris) para considerarlo margen
           const esFondo = (i) => {
             if (data[i + 3] < 8) return true; // transparente
-            const dr = data[i] - bg[0], dg = data[i + 1] - bg[1], db = data[i + 2] - bg[2];
+            const r = data[i], g = data[i + 1], b = data[i + 2];
+            // Casi blanco: fondo de estudio con degradado suave (evita que una foto
+            // como la de un cuff enrollado no se recorte y quede diminuta).
+            if (r >= 234 && g >= 234 && b >= 234) return true;
+            const dr = r - bg[0], dg = g - bg[1], db = b - bg[2]; // o cerca del color de esquina
             return (dr * dr + dg * dg + db * db) <= TOL2;
           };
           let x0 = w, y0 = h, x1 = -1, y1 = -1;
@@ -261,8 +265,8 @@ async function construirPDF(cot) {
           2: { cellWidth: 90 }, 4: { cellWidth: 50, halign: "center" },
         }
       : {
-          0: { cellWidth: 22, halign: "center" }, 1: { cellWidth: 132, halign: "center" },
-          2: { cellWidth: 70 }, 4: { cellWidth: 32, halign: "center" },
+          0: { cellWidth: 22, halign: "center" }, 1: { cellWidth: 112, halign: "center" },
+          2: { cellWidth: 68 }, 4: { cellWidth: 32, halign: "center" },
           5: { cellWidth: 70, halign: "right" }, 6: { cellWidth: 70, halign: "right" },
         },
     theme: "grid",
