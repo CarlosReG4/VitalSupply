@@ -115,8 +115,10 @@ function escribeBloque(doc, x, y, titulo, lineas) {
   doc.setFont("helvetica", "normal"); doc.setFontSize(8.5); doc.setTextColor(40, 40, 40);
   lineas.forEach((l, i) => doc.text(String(l), x, y + 13 + i * 12));
 }
-// Carga una imagen (URL o data URL) y regresa { url: PNG data URL, w, h }. Falla -> null
-// Conserva la proporción real (w, h) para dibujarla sin deformar en el PDF.
+// Carga una imagen (URL o data URL), le recorta el marco blanco y regresa
+// { url: PNG data URL, w, h } con la proporción real del PRODUCTO (ya sin
+// bordes en blanco), para que todas las fotos llenen la celda del PDF de forma
+// uniforme (una foto con mucho fondo blanco ya no se ve diminuta). Falla -> null
 function cargarImagen(url) {
   return new Promise((resolve) => {
     if (!url) return resolve(null);
@@ -131,6 +133,39 @@ function cargarImagen(url) {
         const c = document.createElement("canvas"); c.width = w; c.height = h;
         const ctx = c.getContext("2d"); ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, w, h);
         ctx.drawImage(img, 0, 0, w, h);
+
+        // Recorta el marco blanco: calcula el rectángulo que contiene el producto
+        // (píxeles no-blancos) y descarta el fondo, para que la foto llene la celda.
+        let x0 = w, y0 = h, x1 = -1, y1 = -1;
+        try {
+          const { data } = ctx.getImageData(0, 0, w, h);
+          const UMBRAL = 244; // R,G,B >= UMBRAL (y opacos) => fondo blanco
+          for (let py = 0; py < h; py++) {
+            for (let px = 0; px < w; px++) {
+              const i = (py * w + px) * 4;
+              const esFondo = data[i + 3] < 8 ||
+                (data[i] >= UMBRAL && data[i + 1] >= UMBRAL && data[i + 2] >= UMBRAL);
+              if (!esFondo) {
+                if (px < x0) x0 = px; if (px > x1) x1 = px;
+                if (py < y0) y0 = py; if (py > y1) y1 = py;
+              }
+            }
+          }
+        } catch (_) { x1 = -1; } // canvas "tainted" (sin CORS): no se puede leer -> sin recorte
+
+        if (x1 >= x0 && y1 >= y0) {
+          const pad = Math.round(Math.max(w, h) * 0.02); // respiro mínimo alrededor del producto
+          x0 = Math.max(0, x0 - pad); y0 = Math.max(0, y0 - pad);
+          x1 = Math.min(w - 1, x1 + pad); y1 = Math.min(h - 1, y1 + pad);
+          const cw = x1 - x0 + 1, ch = y1 - y0 + 1;
+          // Solo recorta si de verdad sobra margen (evita recortes espurios en fotos ya ajustadas).
+          if (cw > 4 && ch > 4 && (cw < w * 0.98 || ch < h * 0.98)) {
+            const c2 = document.createElement("canvas"); c2.width = cw; c2.height = ch;
+            const ctx2 = c2.getContext("2d"); ctx2.fillStyle = "#fff"; ctx2.fillRect(0, 0, cw, ch);
+            ctx2.drawImage(c, x0, y0, cw, ch, 0, 0, cw, ch);
+            return resolve({ url: c2.toDataURL("image/png"), w: cw, h: ch });
+          }
+        }
         resolve({ url: c.toDataURL("image/png"), w, h });
       } catch (e) { resolve(null); }
     };
