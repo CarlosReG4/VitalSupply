@@ -115,8 +115,10 @@ function escribeBloque(doc, x, y, titulo, lineas) {
   doc.setFont("helvetica", "normal"); doc.setFontSize(8.5); doc.setTextColor(40, 40, 40);
   lineas.forEach((l, i) => doc.text(String(l), x, y + 13 + i * 12));
 }
-// Carga una imagen (URL o data URL) y regresa { url: PNG data URL, w, h }. Falla -> null
-// Conserva la proporción real (w, h) para dibujarla sin deformar en el PDF.
+// Carga una imagen (URL o data URL), le recorta el marco de fondo (blanco O gris)
+// y regresa { url: PNG data URL, w, h } con la proporción real del PRODUCTO, para
+// que todas las fotos llenen la celda del PDF de forma uniforme: una foto con
+// mucho fondo (o con recuadro gris) ya no se ve diminuta ni con caja. Falla -> null
 function cargarImagen(url) {
   return new Promise((resolve) => {
     if (!url) return resolve(null);
@@ -131,6 +133,50 @@ function cargarImagen(url) {
         const c = document.createElement("canvas"); c.width = w; c.height = h;
         const ctx = c.getContext("2d"); ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, w, h);
         ctx.drawImage(img, 0, 0, w, h);
+
+        // Recorta el marco de fondo: estima el color de fondo con las 4 esquinas
+        // (mediana por canal) y descarta el margen que coincide con él. Así funciona
+        // tanto con fondo blanco como con el recuadro gris de algunas fotos, y el
+        // producto queda del mismo tamaño en todas las filas.
+        let box = null;
+        try {
+          const { data } = ctx.getImageData(0, 0, w, h);
+          const esquinas = [[0, 0], [w - 1, 0], [0, h - 1], [w - 1, h - 1]].map(([px, py]) => {
+            const i = (py * w + px) * 4; return [data[i], data[i + 1], data[i + 2]];
+          });
+          const med = (k) => esquinas.map((e) => e[k]).sort((a, b) => a - b)[2]; // mediana ~ 3er valor
+          const bg = [med(0), med(1), med(2)];
+          const TOL2 = 20 * 20; // distancia² máxima al color de fondo para considerarlo margen
+          const esFondo = (i) => {
+            if (data[i + 3] < 8) return true; // transparente
+            const dr = data[i] - bg[0], dg = data[i + 1] - bg[1], db = data[i + 2] - bg[2];
+            return (dr * dr + dg * dg + db * db) <= TOL2;
+          };
+          let x0 = w, y0 = h, x1 = -1, y1 = -1;
+          for (let py = 0; py < h; py++) {
+            for (let px = 0; px < w; px++) {
+              if (!esFondo((py * w + px) * 4)) {
+                if (px < x0) x0 = px; if (px > x1) x1 = px;
+                if (py < y0) y0 = py; if (py > y1) y1 = py;
+              }
+            }
+          }
+          if (x1 >= x0 && y1 >= y0) box = { x0, y0, x1, y1 };
+        } catch (_) { box = null; } // canvas "tainted" (sin CORS): no se puede leer -> sin recorte
+
+        if (box) {
+          const pad = Math.round(Math.max(w, h) * 0.02); // respiro mínimo alrededor del producto
+          const x0 = Math.max(0, box.x0 - pad), y0 = Math.max(0, box.y0 - pad);
+          const x1 = Math.min(w - 1, box.x1 + pad), y1 = Math.min(h - 1, box.y1 + pad);
+          const cw = x1 - x0 + 1, ch = y1 - y0 + 1;
+          // Solo recorta si de verdad sobra margen (evita recortes espurios en fotos ya ajustadas).
+          if (cw > 4 && ch > 4 && (cw < w * 0.98 || ch < h * 0.98)) {
+            const c2 = document.createElement("canvas"); c2.width = cw; c2.height = ch;
+            const ctx2 = c2.getContext("2d"); ctx2.fillStyle = "#fff"; ctx2.fillRect(0, 0, cw, ch);
+            ctx2.drawImage(c, x0, y0, cw, ch, 0, 0, cw, ch);
+            return resolve({ url: c2.toDataURL("image/png"), w: cw, h: ch });
+          }
+        }
         resolve({ url: c.toDataURL("image/png"), w, h });
       } catch (e) { resolve(null); }
     };
@@ -205,9 +251,10 @@ async function construirPDF(cot) {
 
   autoTable(doc, {
     head, body, startY: y, margin: { left: M, right: M },
-    styles: { fontSize: 8.5, cellPadding: 4, valign: "middle" },
-    headStyles: { fillColor: AZUL, textColor: 255, fontStyle: "bold" },
-    bodyStyles: { minCellHeight: 116 },
+    styles: { fontSize: 8.5, cellPadding: 5, valign: "middle", lineColor: [224, 228, 234], lineWidth: 0.5, textColor: [40, 44, 52] },
+    headStyles: { fillColor: AZUL, textColor: 255, fontStyle: "bold", halign: "left", cellPadding: { top: 6, bottom: 6, left: 5, right: 5 } },
+    bodyStyles: { minCellHeight: 72 },
+    alternateRowStyles: { fillColor: [247, 249, 252] },
     columnStyles: rfq
       ? {
           0: { cellWidth: 24, halign: "center" }, 1: { cellWidth: 140, halign: "center" },
